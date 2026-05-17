@@ -1002,6 +1002,8 @@ MAIN_DOM_JS = r"""
                 hardware_tier: val('field-hardware_tier'),
                 provider_base_url: val('field-provider_base_url'),
                 api_key: val('field-api_key'),
+                skip_code_scan: !chk('ctx-code'),
+                skip_experiments: !chk('ctx-experiments') && !chk('ctx-data') && !chk('ctx-metrics') && !chk('ctx-governance'),
             };
         }
 

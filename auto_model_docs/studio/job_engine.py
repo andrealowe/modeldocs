@@ -165,6 +165,8 @@ async def _parse_request(req: Request) -> JobRequest:
         backoff_jitter=_form_float(body, "backoff_jitter", DEFAULT_LLM_BACKOFF_JITTER),
         notebook_from_cache=notebook_from_cache,
         api_key=_form_str(body, "api_key"),
+        skip_code_scan=_checkbox_truthy(body.get("skip_code_scan")),
+        skip_experiments=_checkbox_truthy(body.get("skip_experiments")),
     )
 
 
@@ -228,6 +230,10 @@ def _build_job_command(req: JobRequest, spec_path: str, dataset_path: str = "") 
         command += ["--notebook-from-cache"]
     if req.verbose:
         command += ["--verbose"]
+    if req.skip_code_scan:
+        command += ["--skip-code-scan"]
+    if req.skip_experiments:
+        command += ["--skip-experiments"]
     return command
 
 

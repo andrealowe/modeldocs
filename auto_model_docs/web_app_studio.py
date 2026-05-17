@@ -777,25 +777,42 @@ async def index(req: Request):
     if banner:
         configure_card_children.append(banner)
 
-    # Domino context callout — explain what context is being used
+    # Domino context — checkboxes to select which sources to include
     configure_card_children.append(
         Div(
+            P("Include context", cls="context-sources-label"),
             Div(
-                Span(cls="fa-icon fa-layer-group context-pill-icon"),
-                Span("Code", cls="context-pill"),
-                Span(cls="fa-icon fa-database context-pill-icon"),
-                Span("Data", cls="context-pill"),
-                Span(cls="fa-icon fa-chart-line context-pill-icon"),
-                Span("Model metrics", cls="context-pill"),
-                Span(cls="fa-icon fa-shield-halved context-pill-icon"),
-                Span("Governance evidence", cls="context-pill"),
+                Label(
+                    Input(type="checkbox", id="ctx-code", checked=True),
+                    Span(cls="fa-icon fa-layer-group context-pill-icon"),
+                    Span("Code", cls="context-pill"),
+                    cls="context-checkbox-item",
+                ),
+                Label(
+                    Input(type="checkbox", id="ctx-experiments", checked=True),
+                    Span(cls="fa-icon fa-flask context-pill-icon"),
+                    Span("Experiments", cls="context-pill"),
+                    cls="context-checkbox-item",
+                ),
+                Label(
+                    Input(type="checkbox", id="ctx-data", checked=True),
+                    Span(cls="fa-icon fa-database context-pill-icon"),
+                    Span("Data", cls="context-pill"),
+                    cls="context-checkbox-item",
+                ),
+                Label(
+                    Input(type="checkbox", id="ctx-metrics", checked=True),
+                    Span(cls="fa-icon fa-chart-line context-pill-icon"),
+                    Span("Model metrics", cls="context-pill"),
+                    cls="context-checkbox-item",
+                ),
+                Label(
+                    Input(type="checkbox", id="ctx-governance", checked=True),
+                    Span(cls="fa-icon fa-shield-halved context-pill-icon"),
+                    Span("Governance evidence", cls="context-pill"),
+                    cls="context-checkbox-item",
+                ),
                 cls="context-pills-row",
-            ),
-            P(
-                "ModelDocs analyses your source code, Domino experiments, model metrics, "
-                "and governance evidence — then structures all of that context for the LLM "
-                "to produce documentation that matches your template.",
-                cls="context-explainer-text",
             ),
             cls="context-explainer-card",
         )

@@ -521,9 +521,29 @@ class DocumentBuilder:
         paragraphs = text.split("\n\n")
 
         for para_text in paragraphs:
-            if para_text.strip():
-                # Clean up the text
-                clean_text = " ".join(para_text.split())
+            if not para_text.strip():
+                continue
+            # Collapse whitespace / newlines within each block
+            clean_text = " ".join(para_text.split())
+
+            # Convert markdown heading markers to Word heading styles
+            if clean_text.startswith("### "):
+                heading_text = clean_text[4:].strip()
+                h = doc.add_heading(heading_text, level=3)
+                for run in h.runs:
+                    run.font.color.rgb = self._BRAND_COLOR
+            elif clean_text.startswith("## "):
+                heading_text = clean_text[3:].strip()
+                h = doc.add_heading(heading_text, level=2)
+                for run in h.runs:
+                    run.font.color.rgb = self._BRAND_COLOR
+            elif clean_text.startswith("# "):
+                heading_text = clean_text[2:].strip()
+                # Use level=2 since level=1 is already used for section headings
+                h = doc.add_heading(heading_text, level=2)
+                for run in h.runs:
+                    run.font.color.rgb = self._BRAND_COLOR
+            else:
                 para = doc.add_paragraph()
                 narrative_size = self.formatting.get("narrative_font_size")
                 self._append_text_with_citations(

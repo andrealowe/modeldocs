@@ -172,6 +172,16 @@ console = Console()
     required=True,
     help="Mount path of the autodoc dataset (e.g. /domino/datasets/local/autodoc)",
 )
+@click.option(
+    "--skip-code-scan",
+    is_flag=True,
+    help="Skip code scanning step",
+)
+@click.option(
+    "--skip-experiments",
+    is_flag=True,
+    help="Skip MLflow experiment/artifact scanning step",
+)
 def main(
     spec: str,
     code_root: str,
@@ -195,6 +205,8 @@ def main(
     latest_only: bool,
     language: str,
     dataset_path: str,
+    skip_code_scan: bool,
+    skip_experiments: bool,
 ) -> None:
     """Generate model documentation from ML codebases.
 
@@ -366,6 +378,8 @@ def main(
             latest_only=latest_only,
             dataset_mount_path=dataset_path,
             language=language,
+            skip_code_scan=skip_code_scan,
+            skip_experiments=skip_experiments,
         )
 
         # Run generation with progress

@@ -70,6 +70,8 @@ class Orchestrator:
         latest_only: bool = False,
         dataset_mount_path: str = "",
         language: str = "auto",
+        skip_code_scan: bool = False,
+        skip_experiments: bool = False,
     ):
         """Initialize the orchestrator.
 
@@ -96,6 +98,8 @@ class Orchestrator:
         self.generate_notebook = generate_notebook
         self.notebook_path = notebook_path
         self.dataset_mount_path = dataset_mount_path
+        self.skip_code_scan = skip_code_scan
+        self.skip_experiments = skip_experiments
 
         _lang = str(language or "auto").strip().lower()
         if _lang != "auto":
@@ -206,22 +210,33 @@ class Orchestrator:
             code_progress = progress
             update_scanning_progress()
 
-        code_task = asyncio.create_task(
-            self.code_scanner.scan(on_progress=on_code_progress)
-        )
+        async def _empty_code_ctx() -> CodeContext:
+            return CodeContext()
+
+        async def _empty_artifact_ctx() -> ArtifactContext:
+            return ArtifactContext()
+
+        if self.skip_code_scan:
+            logger.info("Skipping code scan (skip_code_scan=True)")
+            code_task = asyncio.create_task(_empty_code_ctx())
+        else:
+            code_task = asyncio.create_task(
+                self.code_scanner.scan(on_progress=on_code_progress)
+            )
         artifact_start = time.monotonic()
-        if on_status:
-            on_status("Scanning MLflow artifacts...")
-        artifact_task = asyncio.create_task(
-            self.artifact_scanner.scan(on_progress=on_artifact_progress)
-        )
+        if self.skip_experiments:
+            logger.info("Skipping experiment/artifact scan (skip_experiments=True)")
+            artifact_task = asyncio.create_task(_empty_artifact_ctx())
+        else:
+            if on_status:
+                on_status("Scanning MLflow artifacts...")
+            artifact_task = asyncio.create_task(
+                self.artifact_scanner.scan(on_progress=on_artifact_progress)
+            )
         try:
             artifact_ctx = await artifact_task
-            if on_status:
-                on_status(
-                    "MLflow artifact scan completed "
-                    f"in {time.monotonic() - artifact_start:.1f}s."
-                )
+            if on_status and not self.skip_experiments:
+                on_status(f"MLflow artifact scan completed in {time.monotonic() - artifact_start:.1f}s.")
             code_ctx = await code_task
         except (asyncio.CancelledError, Exception):
             for t in (code_task, artifact_task):

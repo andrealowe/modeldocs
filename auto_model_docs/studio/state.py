@@ -103,6 +103,8 @@ class JobRequest:
     notebook_from_cache: bool
     spec_content: str = ""
     api_key: str = ""
+    skip_code_scan: bool = False
+    skip_experiments: bool = False
 
 
 @dataclass

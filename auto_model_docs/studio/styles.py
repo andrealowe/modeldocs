@@ -1985,6 +1985,36 @@ select.hw-tier-select option {
     margin: 0;
     line-height: 1.5;
 }
+.context-checkbox-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--on-surface);
+    background: var(--surface-variant);
+    border: 1.5px solid var(--outline-variant);
+    border-radius: 99px;
+    padding: 3px 10px 3px 8px;
+    transition: background 0.15s, border-color 0.15s;
+    user-select: none;
+}
+.context-checkbox-item input[type="checkbox"] {
+    accent-color: var(--primary);
+    width: 13px;
+    height: 13px;
+    cursor: pointer;
+}
+.context-checkbox-item:has(input:checked) {
+    background: color-mix(in srgb, var(--primary) 12%, transparent);
+    border-color: var(--primary);
+    color: var(--primary);
+}
+.context-checkbox-item .context-pill-icon {
+    font-size: 11px;
+    color: inherit;
+}
 
 /* ── Template editor ──────────────────────────────────────────────── */
 .template-selector-row {
