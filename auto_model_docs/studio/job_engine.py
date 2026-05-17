@@ -1,7 +1,8 @@
-"""Domino job submission and command building."""
+"""Local subprocess job execution."""
 
 from __future__ import annotations
 
+import asyncio
 import os
 import sys
 from pathlib import Path
@@ -78,12 +79,6 @@ def _validate_job_inputs(req: JobRequest, spec_path: str) -> None:
         raise ValueError("Provider must be anthropic or openai.")
     if not (req.model or "").strip():
         raise ValueError("Model is required. Choose a model before generating documentation.")
-    if not _domino_id_str(req.hardware_tier):
-        raise ValueError("Hardware tier is required. Select a hardware tier before generating documentation.")
-    if not _domino_id_str(req.environment_id):
-        raise ValueError("Environment is required. Select an environment before generating documentation.")
-    if not _domino_id_str(req.environment_revision_id):
-        raise ValueError("Environment revision is required. Select an environment revision before generating documentation.")
     if req.max_files < 1 or req.max_files > _MAX_JOB_MAX_FILES:
         raise ValueError(f"max_files must be between 1 and {_MAX_JOB_MAX_FILES}.")
     if req.workers < 1 or req.workers > _MAX_JOB_WORKERS:
@@ -185,8 +180,8 @@ def _build_job_command(req: JobRequest, spec_path: str, dataset_path: str = "") 
     code_root_arg = (req.code_root or "").strip()
 
     command = [
-        "python",
-        "/mnt/imported/code/AutoDocumentation_Extension/auto_model_docs/main.py", #TODO: Change this to the correct path
+        sys.executable,
+        str(Path(__file__).resolve().parent.parent / "main.py"),
         "--spec",
         spec_path,
         "--dataset-path",
@@ -245,27 +240,18 @@ def _build_job_command_str(req: JobRequest, spec_path: str, dataset_path: str = 
 # Domino job submission
 # ---------------------------------------------------------------------------
 
-def launch_domino_job_run(
-    command_str: str,
-    *,
-    tier_id: str,
-    project_id: str,
-    environment_id: str,
-    environment_revision_id: str,
-) -> tuple[str, str]:
-    run_id = domino_client.submit_job(
-        command_str,
-        branch=None,
-        tier_id=tier_id,
-        project_id=project_id,
-        environment_id=environment_id,
-        environment_revision_id=environment_revision_id,
-    )
-    job_url = domino_client.build_job_url(run_id, project_id=project_id)
-    return run_id, job_url
+async def _drain_process(proc: asyncio.subprocess.Process) -> None:
+    """Wait for the subprocess to finish and log its output."""
+    try:
+        stdout, _ = await proc.communicate()
+        if stdout:
+            logger.info("Job output:\n%s", stdout.decode(errors="replace"))
+        logger.info("Job process (pid=%d) exited with code %d", proc.pid, proc.returncode)
+    except Exception:
+        logger.exception("Error draining job process output")
 
 
-async def _submit_domino_job(req: JobRequest, dataset_mount_path: str) -> tuple[str, str]:
+async def _submit_local_job(req: JobRequest, dataset_mount_path: str) -> tuple[str, str]:
     spec_path = (req.spec_path or "").strip()
     mount = (dataset_mount_path or "").strip()
 
@@ -278,17 +264,13 @@ async def _submit_domino_job(req: JobRequest, dataset_mount_path: str) -> tuple[
 
     _validate_job_inputs(req, spec_path)
 
-    command_str = _build_job_command_str(req, spec_path, mount)
+    command = _build_job_command(req, spec_path, mount)
+    logger.info("Starting local job: %s", " ".join(command))
 
-    try:
-        run_id, job_url = launch_domino_job_run(
-            command_str,
-            tier_id=_domino_id_str(req.hardware_tier),
-            project_id=_domino_id_str(req.project_id),
-            environment_id=_domino_id_str(req.environment_id),
-            environment_revision_id=_domino_id_str(req.environment_revision_id),
-        )
-        return run_id, job_url or ""
-    except Exception as exc:
-        logger.error("Domino job submission failed: %s", exc, exc_info=True)
-        raise
+    proc = await asyncio.create_subprocess_exec(
+        *command,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.STDOUT,
+    )
+    asyncio.ensure_future(_drain_process(proc))
+    return str(proc.pid), ""

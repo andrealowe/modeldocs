@@ -1,5 +1,11 @@
 # Document Specification for Compliance Report
-# This YAML file defines the structure and sections of the generated document.
+# This file defines the structure and sections of the generated document.
+#
+# SR 26-2 — Model Risk Management
+# This template supports compliance with SR 26-2, the Federal Reserve's supervisory
+# guidance on model risk management. It covers model governance, independent
+# validation, ongoing monitoring, and regulatory classification requirements
+# for banking institutions.
 
 title: "Compliance Report"
 authors: "Model Risk Management"

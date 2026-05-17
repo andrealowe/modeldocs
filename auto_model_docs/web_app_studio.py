@@ -122,8 +122,12 @@ _TEMPLATE_EDITOR_JS = r"""
         if (!tplTextarea || !name) return;
         setTemplateLoading(true);
         fetch(_adUrl('api/template-content') + '?name=' + encodeURIComponent(name))
-            .then(function(r) { return r.text(); })
+            .then(function(r) {
+                if (!r.ok) { setTemplateLoading(false); return null; }
+                return r.text();
+            })
             .then(function(text) {
+                if (!text) return;
                 tplTextarea.value = text;
                 renderSectionList(parseTemplateSections(text));
                 setTemplateLoading(false);
@@ -333,6 +337,9 @@ def _template_editor_section(default_content: str) -> object:
             Select(
                 Option("Compliance Report", value="compliance", selected=True),
                 Option("Default (model doc)", value="default"),
+                Option("Model Validation Report", value="validation"),
+                Option("Fair Lending Assessment", value="fair-lending"),
+                Option("Stress Testing Summary", value="stress-test"),
                 id="template-selector",
                 cls="template-selector-select",
             ),

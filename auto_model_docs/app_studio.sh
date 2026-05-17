@@ -14,7 +14,7 @@ export LD_LIBRARY_PATH="/opt/conda/lib:${LD_LIBRARY_PATH:-}"
 
 # Install dependencies if requirements.txt exists
 if [ -f /mnt/code/requirements.txt ]; then
-    pip install -r /mnt/code/requirements.txt
+    python -m pip install -r /mnt/code/requirements.txt
 fi
 
 # Run the FastHTML web app

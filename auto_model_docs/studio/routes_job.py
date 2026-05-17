@@ -23,7 +23,7 @@ from .state import (
 )
 from .job_engine import (
     _parse_request,
-    _submit_domino_job,
+    _submit_local_job,
 )
 
 
@@ -122,7 +122,7 @@ def register_job_routes(rt):
         except HTTPException as e:
             return _json({"error": _error_body(e)}, e.status_code)
         try:
-            run_id, job_url = await _submit_domino_job(job_request, dataset_mount_path)
+            run_id, job_url = await _submit_local_job(job_request, dataset_mount_path)
         except ValueError as e:
             return _json({"error": str(e)}, 400)
         except Exception:
