@@ -164,6 +164,7 @@ async def _parse_request(req: Request) -> JobRequest:
         max_backoff=_form_float(body, "max_backoff", DEFAULT_LLM_MAX_BACKOFF),
         backoff_jitter=_form_float(body, "backoff_jitter", DEFAULT_LLM_BACKOFF_JITTER),
         notebook_from_cache=notebook_from_cache,
+        api_key=_form_str(body, "api_key"),
     )
 
 
@@ -276,10 +277,21 @@ async def _submit_local_job(req: JobRequest, dataset_mount_path: str) -> tuple[s
     command = _build_job_command(req, spec_path, mount)
     logger.info("Starting local job: %s", " ".join(command))
 
+    # Build subprocess environment, injecting the API key if provided in the request
+    sub_env = os.environ.copy()
+    api_key = (req.api_key or "").strip()
+    if api_key:
+        prov = (req.provider or "").strip().lower()
+        if prov == "anthropic":
+            sub_env["ANTHROPIC_API_KEY"] = api_key
+        else:
+            sub_env["OPENAI_API_KEY"] = api_key
+
     proc = await asyncio.create_subprocess_exec(
         *command,
         stdout=asyncio.subprocess.PIPE,
         stderr=asyncio.subprocess.STDOUT,
+        env=sub_env,
     )
     asyncio.ensure_future(_drain_process(proc))
     return str(proc.pid), ""

@@ -582,6 +582,21 @@ async def index(req: Request):
     advanced_modal_fields = [
         Div(
             Div(
+                Label("API key", for_="field-api_key"),
+                Span("\u24d8", cls="info-tooltip", data_tooltip="Overrides the ANTHROPIC_API_KEY / OPENAI_API_KEY environment variable for this run."),
+                cls="label-row",
+            ),
+            Input(
+                name="api_key",
+                id="field-api_key",
+                type="password",
+                placeholder="Paste key here if not set in environment",
+                autocomplete="off",
+            ),
+            cls="field",
+        ),
+        Div(
+            Div(
                 Label("Hardware tier", for_="field-hardware_tier"),
                 Span("\u24d8", cls="info-tooltip", data_tooltip="Compute tier for the Domino job."),
                 cls="label-row",

@@ -102,6 +102,7 @@ class JobRequest:
     backoff_jitter: float
     notebook_from_cache: bool
     spec_content: str = ""
+    api_key: str = ""
 
 
 @dataclass

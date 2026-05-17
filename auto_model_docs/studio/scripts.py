@@ -994,6 +994,7 @@ MAIN_DOM_JS = r"""
                 latest_only: chk('field-latest_only'),
                 hardware_tier: val('field-hardware_tier'),
                 provider_base_url: val('field-provider_base_url'),
+                api_key: val('field-api_key'),
             };
         }
 
