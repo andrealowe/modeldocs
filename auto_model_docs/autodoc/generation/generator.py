@@ -340,8 +340,35 @@ class ContentGenerator:
                     metrics_hint += "\n\nIMPORTANT: Create a comparative chart showing these models side by side with their metrics."
 
         if not has_metrics:
-            # Log that we're skipping chart generation
-            return None
+            # No MLflow metrics — try to build a chart from code context data
+            cc = context.code_context
+            params = cc.hyperparameters or {}
+            numeric_params = {
+                k: v for k, v in params.items()
+                if isinstance(v, (int, float)) and not isinstance(v, bool)
+            }
+            if numeric_params:
+                metrics_hint = "\n\n## HYPERPARAMETERS FROM CODE (use these for the chart):\n"
+                for k, v in list(numeric_params.items())[:12]:
+                    metrics_hint += f"  - {k}: {v}\n"
+                metrics_hint += "\nCreate a bar chart of these hyperparameter values."
+                has_metrics = True
+            elif cc.features:
+                # Feature list: chart number of features per prefix/group
+                from collections import Counter
+                prefix_counts: Counter = Counter()
+                for f in cc.features:
+                    grp = f.split("_")[0] if "_" in f else "other"
+                    prefix_counts[grp] += 1
+                top = prefix_counts.most_common(10)
+                if top:
+                    metrics_hint = "\n\n## FEATURE GROUPS FROM CODE (use these for the chart):\n"
+                    for grp, cnt in top:
+                        metrics_hint += f"  - {grp}: {cnt}\n"
+                    metrics_hint += "\nCreate a bar chart showing feature counts by group."
+                    has_metrics = True
+            if not has_metrics:
+                return None
 
         code_evidence = self._format_code_evidence(context.code_context)
         mlflow_evidence = self._format_mlflow_evidence(context)
@@ -725,9 +752,14 @@ class ContentGenerator:
                 if evidence.symbol
                 else evidence.path
             )
+            line_info = ""
+            if evidence.start_line and evidence.end_line:
+                line_info = f" (lines {evidence.start_line}–{evidence.end_line})"
+            elif evidence.start_line:
+                line_info = f" (line {evidence.start_line})"
             lines.append(
                 f"- Statement: {evidence.statement}\n"
-                f"  Source: {location}\n"
+                f"  Source: {location}{line_info}\n"
                 f"  Citation ID: [@{citation_id}]\n"
                 f"  Snippet: {snippet}"
             )

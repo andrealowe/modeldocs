@@ -1005,10 +1005,18 @@ class DocumentBuilder:
                 clean_symbol = clean_symbol.replace(".__call__", "")
                 clean_symbol = clean_symbol.replace(".__new__", "")
 
+                start = parsed.get("start_line")
+                end = parsed.get("end_line")
+                line_suffix = ""
+                if start and end and start != end:
+                    line_suffix = f" lines {start}–{end}"
+                elif start:
+                    line_suffix = f" line {start}"
+
                 if code_path and clean_symbol:
-                    parts.append(f"Code: {code_path}#{clean_symbol}")
+                    parts.append(f"Code: {code_path}#{clean_symbol}{line_suffix}")
                 elif code_path:
-                    parts.append(f"Code: {code_path}")
+                    parts.append(f"Code: {code_path}{line_suffix}")
                 else:
                     # Fallback: clean up display_id if it contains the info
                     clean_display = display_id

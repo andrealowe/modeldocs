@@ -203,12 +203,19 @@ def browse_code(
 
 
 def code_root_options_from_browse_response(browse: dict[str, Any]) -> dict[str, Any]:
-    """Build combobox payload from browseCode JSON (projectSettings)."""
+    """Build combobox payload from browseCode JSON (projectSettings).
+
+    Prefers the project's own repository location (e.g. /repos/<name>/) as
+    the default so the scanner targets the user's model code rather than the
+    app's own /mnt/code directory.
+    """
     ps = browse.get("projectSettings") or {}
     is_git = bool(ps.get("isGitBasedProject"))
     manual = "/mnt/code" if is_git else "/mnt"
-    options: list[dict[str, str]] = [{"value": manual, "label": manual}]
-    seen: set[str] = {manual}
+    options: list[dict[str, str]] = []
+    seen: set[str] = set()
+    first_repo: str | None = None
+
     for repo in ps.get("repositories") or []:
         if not isinstance(repo, dict):
             continue
@@ -216,10 +223,23 @@ def code_root_options_from_browse_response(browse: dict[str, Any]) -> dict[str, 
         if not loc or loc in seen:
             continue
         seen.add(loc)
+        if first_repo is None:
+            first_repo = loc
         options.append({"value": loc, "label": loc})
+
+    # Always include /mnt/code as a fallback option
+    if manual not in seen:
+        options.append({"value": manual, "label": manual})
+
+    if not options:
+        options = [{"value": manual, "label": manual}]
+
+    # Default to first repo location (the target project's code); fall back to /mnt/code
+    default_root = first_repo or manual
+
     return {
         "isGitBasedProject": is_git,
-        "defaultRoot": manual,
+        "defaultRoot": default_root,
         "options": options,
     }
 
