@@ -253,6 +253,33 @@ def register_api_routes(rt):
 
     rt("/api/download-compliance-template")(api_download_compliance_template)
 
+    # ── Demo output files — served from uploads/ for preview/demo mode ───
+    _UPLOADS_DIR = Path(__file__).resolve().parent.parent.parent / "uploads"
+
+    async def demo_report_docx():
+        p = _UPLOADS_DIR / "NBT-CR-EL-007_Compliance_Report_v7_0.docx"
+        if not p.exists():
+            return Response("Demo file not found", status_code=404)
+        return FileResponse(
+            str(p),
+            media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            filename="NBT-CR-EL-007_Compliance_Report_v7_0.docx",
+        )
+
+    rt("/demo/report-docx")(demo_report_docx)
+
+    async def demo_report_ipynb():
+        p = _UPLOADS_DIR / "NBT-CR-EL-007_Compliance_Report.ipynb"
+        if not p.exists():
+            return Response("Demo file not found", status_code=404)
+        return FileResponse(
+            str(p),
+            media_type="application/x-ipynb+json",
+            filename="NBT-CR-EL-007_Compliance_Report.ipynb",
+        )
+
+    rt("/demo/report-ipynb")(demo_report_ipynb)
+
     async def api_code_root_options(req: Request):
         pid = (_resolve_request_project_id(req) or "").strip()
 

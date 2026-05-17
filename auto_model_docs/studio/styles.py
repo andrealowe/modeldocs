@@ -1767,6 +1767,112 @@ select.hw-tier-select option {
     color: var(--error);
 }
 
+/* ── Demo mode: progress card ─────────────────────────────────────── */
+.demo-progress-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    padding: 32px 20px;
+    text-align: center;
+}
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+.demo-progress-spinner {
+    width: 36px;
+    height: 36px;
+    border: 3px solid var(--outline-variant);
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: spin 0.9s linear infinite;
+}
+.demo-progress-step-text {
+    font-size: 13px;
+    color: var(--on-surface-variant);
+    transition: opacity 0.3s;
+}
+
+/* ── Demo mode: output card ───────────────────────────────────────── */
+.demo-output-card {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.demo-output-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.demo-output-time {
+    font-size: 11px;
+    color: var(--on-surface-variant);
+}
+.demo-output-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--on-surface);
+    line-height: 1.3;
+}
+.demo-output-subtitle {
+    font-size: 12px;
+    color: var(--on-surface-variant);
+    margin-top: -4px;
+}
+.demo-output-meta {
+    font-size: 11px;
+    color: var(--on-surface-variant);
+    background: var(--surface-container);
+    border-radius: 4px;
+    padding: 3px 8px;
+    display: inline-block;
+    width: fit-content;
+}
+.demo-output-files {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 4px;
+}
+.demo-file-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    background: var(--primary);
+    color: #fff;
+    transition: background 0.15s;
+}
+.demo-file-btn:hover {
+    background: var(--primary-hover);
+    color: #fff;
+}
+.demo-file-btn--nb {
+    background: var(--surface-container-high);
+    color: var(--on-surface);
+    border: 1.5px solid var(--outline-variant);
+}
+.demo-file-btn--nb:hover {
+    background: var(--surface-container-highest);
+    color: var(--on-surface);
+}
+.demo-file-icon {
+    font-size: 15px;
+}
+.demo-output-note {
+    font-size: 12px;
+    color: var(--on-surface-variant);
+    margin: 4px 0 0;
+    line-height: 1.5;
+    border-top: 1px solid var(--outline-variant);
+    padding-top: 8px;
+}
+
 /* ── Responsive ───────────────────────────────────────────────────── */
 
 /* ── ModelDocs: app header title ─────────────────────────────────── */
@@ -1882,31 +1988,95 @@ select.hw-tier-select option {
 }
 
 /* ── Template editor ──────────────────────────────────────────────── */
-.template-editor-section {
-    margin-bottom: 4px;
-}
-.template-selector-field {
-    margin-bottom: 10px;
+.template-selector-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
 }
 .template-selector-select {
-    width: 100%;
+    flex: 1;
     font-size: 13px;
 }
-.template-editor-wrap {
-    position: relative;
-    margin-bottom: 8px;
-}
 .template-loading-indicator {
-    position: absolute;
-    top: 8px;
-    right: 10px;
     font-size: 11px;
     color: var(--on-surface-variant);
-    pointer-events: none;
+    white-space: nowrap;
+}
+
+/* Section outline */
+.tpl-sections-panel {
+    background: var(--surface-container-low);
+    border: 1px solid var(--outline-variant);
+    border-radius: 8px;
+    margin-bottom: 12px;
+    overflow: hidden;
+}
+.tpl-sections-header {
+    padding: 7px 12px 6px;
+    border-bottom: 1px solid var(--outline-variant);
+    background: var(--surface-container);
+}
+.tpl-sections-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--on-surface-variant);
+}
+.tpl-section-list {
+    padding: 4px 0;
+}
+.tpl-section-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 12px;
+    transition: background 0.1s;
+}
+.tpl-section-row:hover {
+    background: var(--surface-container);
+}
+.tpl-section-num {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--primary);
+    min-width: 16px;
+    text-align: right;
+    opacity: 0.8;
+}
+.tpl-section-name {
+    font-size: 12.5px;
+    color: var(--on-surface);
+    flex: 1;
+}
+.tpl-section-badge {
+    font-size: 9.5px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: var(--primary);
+    background: var(--primary-container);
+    border-radius: 4px;
+    padding: 1px 6px;
+    white-space: nowrap;
+}
+
+/* Editable YAML area */
+.template-editor-wrap {
+    margin-bottom: 8px;
+}
+.tpl-editor-label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--on-surface-variant);
+    margin-bottom: 5px;
 }
 .template-editor-textarea {
     width: 100%;
-    min-height: 260px;
+    min-height: 220px;
     font-family: 'Roboto Mono', 'Menlo', 'Consolas', monospace;
     font-size: 11.5px;
     line-height: 1.55;

@@ -16,8 +16,14 @@ MAIN_DOM_JS = r"""
     // "api/datasets" resolve to "/apps/api/datasets" and break. We derive
     // the prefix from window.location.pathname and prepend it ourselves.
     var _AD_APP_BASE = (function() {
-        var m = (window.location.pathname || '').match(/^(\/apps(?:-internal)?\/[^/]+)/i);
-        return m ? m[1] + '/' : '';
+        var p = window.location.pathname || '';
+        // Domino App proxy: /apps/<id>/ or /apps-internal/<id>/
+        var m = p.match(/^(\/apps(?:-internal)?\/[^/]+)/i);
+        if (m) return m[1] + '/';
+        // Notebook-session dev proxy: /.../.../proxy/<port>/
+        var nb = p.match(/^(.+\/proxy\/\d+\/)/);
+        if (nb) return nb[1];
+        return '';
     })();
     function _adUrl(rel) {
         if (!_AD_APP_BASE) return rel;

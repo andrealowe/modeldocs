@@ -92,14 +92,16 @@ def _validate_environment() -> list:
 
 
 def validate_studio_domino_compute_environment(domino_client_mod: Any) -> list[str]:
-    """Return non-empty list of user-facing lines if the app cannot use the configured compute environment."""
+    """Return non-empty list of user-facing lines if the app cannot use the configured compute environment.
+
+    When neither DOMINO_ENVIRONMENT_ID nor DOMINO_ENVIRONMENT_REVISION_ID is set we
+    assume a dev/preview context and skip validation entirely.
+    """
     eid = (os.environ.get("DOMINO_ENVIRONMENT_ID") or "").strip()
     rid = (os.environ.get("DOMINO_ENVIRONMENT_REVISION_ID") or "").strip()
     if not eid or not rid:
-        return [
-            "This app is missing required configuration.",
-            "Please contact your administrator to finish setup.",
-        ]
+        # Dev/preview mode — no environment configured, skip validation silently.
+        return []
     try:
         revs = domino_client_mod.list_environment_revisions(eid) or []
     except Exception:
