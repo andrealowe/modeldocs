@@ -1011,7 +1011,14 @@ MAIN_DOM_JS = r"""
             }
         }
 
+        // Holds the current demo job row so polling can't clobber it
+        var _demoJob = null;
+
         function fetchJobHistory() {
+            if (DEMO_MODE) {
+                if (_demoJob) renderJobHistory([_demoJob], '');
+                return;
+            }
             fetch(_adUrl('job-history') + queryJobHistory())
                 .then(_checkResp).then(function(r) { return r.json(); })
                 .then(function(data) {
@@ -1103,19 +1110,11 @@ MAIN_DOM_JS = r"""
                 // ── Demo mode: simulate a job run without hitting /run ──────
                 if (DEMO_MODE) {
                     var _demoSubmittedAt = new Date().toISOString();
-                    renderJobHistory([{
-                        status: 'running',
-                        submitted_at: _demoSubmittedAt,
-                        dataset_path: null,
-                        domino_run_id: 'demo',
-                    }], '');
+                    _demoJob = { status: 'running', submitted_at: _demoSubmittedAt, dataset_path: null, domino_run_id: 'demo' };
+                    renderJobHistory([_demoJob], '');
                     setTimeout(function() {
-                        renderJobHistory([{
-                            status: 'succeeded',
-                            submitted_at: _demoSubmittedAt,
-                            dataset_path: '__demo__',
-                            domino_run_id: 'demo',
-                        }], '');
+                        _demoJob = { status: 'succeeded', submitted_at: _demoSubmittedAt, dataset_path: '__demo__', domino_run_id: 'demo' };
+                        renderJobHistory([_demoJob], '');
                         if (submitBtn) submitBtn.disabled = false;
                     }, 15000);
                     return;
