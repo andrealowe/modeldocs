@@ -1152,6 +1152,52 @@ label.primary {
     white-space: nowrap;
 }
 
+/* ── Secondary Button (outlined/text) ────────────────────────────── */
+a.secondary {
+    background: transparent;
+    border: 1px solid var(--outline-variant);
+    border-radius: var(--radius-sm);
+    padding: 0 12px;
+    height: 28px;
+    min-height: 28px;
+    color: var(--primary);
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    line-height: 1.2;
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+a.secondary:hover {
+    background: var(--primary-fixed);
+    border-color: var(--primary);
+    color: var(--primary);
+}
+a.secondary:visited { color: var(--primary); }
+
+/* Clear history — muted destructive text link */
+#job-clear-history-btn {
+    border: none;
+    color: var(--on-surface-variant);
+    font-size: 12px;
+    padding: 0 6px;
+    background: transparent;
+    height: auto;
+    min-height: unset;
+    opacity: 0.8;
+}
+#job-clear-history-btn:hover {
+    color: var(--error, #B3261E);
+    background: transparent;
+    border: none;
+    text-decoration: underline;
+    opacity: 1;
+}
+
 /* ── Terminal Card ────────────────────────────────────────────────── */
 .terminal-card {
     background: var(--surface-container-lowest);
@@ -1409,7 +1455,7 @@ a.primary.terminal-action-disabled,
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    padding: 0.875rem 0.75rem;
+    padding: 1rem 1rem;
 }
 /* ── Job History ──────────────────────────────────────────────────── */
 #job-history-content {
@@ -1469,39 +1515,45 @@ a.primary.terminal-action-disabled,
 .history-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 13px;
-    min-width: 420px;
+    font-size: 12px;
+    min-width: 380px;
 }
 .history-table th {
     text-align: left;
     font-family: var(--font-body);
-    font-size: 11px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--on-surface-variant);
-    padding: 0 0.75rem 0.625rem 0;
-    border-bottom: 1px solid var(--outline-variant);
-    white-space: nowrap;
-}
-.history-table td {
-    padding: 0.625rem 0.75rem 0.625rem 0;
-    color: var(--on-surface);
-    border-bottom: 1px solid var(--outline-variant);
-    max-width: 120px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-.history-table tr:last-child td { border-bottom: none; }
-.history-status {
-    display: inline-block;
     font-size: 10px;
     font-weight: 700;
-    padding: 2px 8px;
-    border-radius: 0px;
     text-transform: uppercase;
-    letter-spacing: 0.03em;
+    letter-spacing: 0.06em;
+    color: var(--on-surface-variant);
+    padding: 0 0.75rem 0.5rem 0;
+    border-bottom: 2px solid var(--outline-variant);
+    white-space: nowrap;
+}
+.history-table th:first-child,
+.history-table td:first-child { padding-left: 2px; }
+.history-table th:nth-child(1) { width: 100px; }
+.history-table th:nth-child(2) { width: 130px; }
+.history-table th:nth-child(3) { width: 70px; }
+.history-table td {
+    padding: 0.5rem 0.75rem 0.5rem 0;
+    color: var(--on-surface);
+    border-bottom: 1px solid var(--outline-variant);
+    vertical-align: middle;
+}
+.history-table td:nth-child(1),
+.history-table td:nth-child(2) { white-space: nowrap; }
+.history-table tr:last-child td { border-bottom: none; }
+.history-status {
+    display: inline-flex;
+    align-items: center;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
 }
 .history-status-queued { background: var(--warning-container); color: var(--warning); }
 .history-status-submitted { background: var(--secondary-container); color: var(--primary); }
@@ -1534,9 +1586,12 @@ details[open] > .history-toggle::before {
 }
 .history-actions {
     display: flex;
-    justify-content: flex-end;
+    justify-content: space-between;
+    align-items: center;
     gap: 0.5rem;
-    margin-top: 0.75rem;
+    margin-top: 0.625rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--outline-variant);
 }
 
 /* ── Card Footer (Generate button) ────────────────────────────────── */
@@ -2231,22 +2286,20 @@ select.hw-tier-select option {
     color: var(--on-primary);
     border: none;
     border-radius: 4px;
-    padding: 3px 10px;
-    font-size: 12px;
+    padding: 4px 10px;
+    font-size: 11px;
     font-weight: 500;
     cursor: pointer;
+    white-space: nowrap;
 }
 .job-view-btn:hover { opacity: 0.85; }
 .job-view-btn--secondary {
     background: transparent;
     color: var(--primary);
     border: 1.5px solid var(--primary);
-    margin-left: 4px;
 }
 .job-view-btn--secondary:hover { background: color-mix(in srgb, var(--primary) 10%, transparent); opacity: 1; }
-.job-view-btn--secondary[disabled] {
-    opacity: 0.55;
-}
+.job-view-btn--secondary[disabled] { opacity: 0.55; }
 
 /* ── Document viewer modal ────────────────────────────────────────── */
 .doc-viewer-modal {

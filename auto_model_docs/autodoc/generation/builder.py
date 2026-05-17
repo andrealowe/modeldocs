@@ -587,15 +587,41 @@ class DocumentBuilder:
             if not _stripped_title and cleaned_content.block_type == ContentType.NARRATIVE:
                 _stripped_title = True
                 text = cleaned_content.content or ""
-                section_title = result.plan.title or ""
-                if section_title and text.lower().startswith(section_title.lower()):
-                    stripped = text[len(section_title):].lstrip(" :\n\r\t")
-                    if stripped:
-                        cleaned_content = GeneratedContent(
-                            block_type=cleaned_content.block_type,
-                            content=stripped,
-                            metadata=cleaned_content.metadata,
-                        )
+                # Check both plan title and spec section name
+                for candidate in [result.plan.title, result.plan.name]:
+                    if not (candidate or "").strip():
+                        continue
+                    ct = candidate.strip()
+                    tl = text.lower()
+                    ct_lower = ct.lower()
+                    # Match "Title: rest", "Title rest", "Title\nrest"
+                    for sep in (":", " —", " -", "\n", " "):
+                        prefix = ct_lower + sep.lower()
+                        if tl.startswith(prefix):
+                            stripped = text[len(prefix):].lstrip(" \n\r\t")
+                            if stripped:
+                                cleaned_content = GeneratedContent(
+                                    block_type=cleaned_content.block_type,
+                                    content=stripped,
+                                    metadata=cleaned_content.metadata,
+                                )
+                            break
+                    else:
+                        # No separator match — check bare title as whole-word prefix
+                        if tl.startswith(ct_lower) and (
+                            len(ct_lower) >= len(tl)
+                            or not text[len(ct_lower)].isalpha()
+                        ):
+                            stripped = text[len(ct_lower):].lstrip(" :\n\r\t—-")
+                            if stripped:
+                                cleaned_content = GeneratedContent(
+                                    block_type=cleaned_content.block_type,
+                                    content=stripped,
+                                    metadata=cleaned_content.metadata,
+                                )
+                        else:
+                            continue
+                    break
             section_citation_ids.extend(citation_ids)
             section_citation_details.update(citation_details)
             self._add_content(doc, cleaned_content, registry)

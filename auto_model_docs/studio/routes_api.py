@@ -314,16 +314,18 @@ def register_api_routes(rt):
   h1 {{ font-size: 1.35rem; border-bottom: 2px solid #1F4E79; padding-bottom: .4rem; margin-top: 2rem; }}
   h2 {{ font-size: 1.1rem; margin-top: 1.5rem; color: #2E74B5; }}
   h3 {{ font-size: 1rem; margin-top: 1.2rem; }}
-  p {{ margin: .5rem 0 .9rem; font-weight: normal; }}
-  strong, b {{ font-weight: 600; }}
+  p {{ margin: .5rem 0 .9rem; font-weight: normal; color: #1a1a1a; }}
+  p strong, p b, p span {{ font-weight: normal !important; color: #1a1a1a !important; }}
+  td p strong, td p b, th p strong, th p b {{ font-weight: 600 !important; color: inherit !important; }}
   em, i {{ font-style: italic; font-weight: normal; color: #555; }}
   table {{ border-collapse: collapse; width: 100%; margin: 1rem 0; font-size: .875rem; }}
   th {{ background: #1F4E79; color: #fff; font-weight: 600; padding: .4rem .7rem; text-align: left; }}
-  td {{ border: 1px solid #ddd; padding: .4rem .7rem; }}
+  td {{ border: 1px solid #ddd; padding: .4rem .7rem; color: #1a1a1a; }}
   tr:nth-child(even) td {{ background: #f7f8fc; }}
   ul, ol {{ margin: .4rem 0 .8rem 1.2rem; padding: 0; }}
-  li {{ margin-bottom: .3rem; }}
-  img {{ max-width: 100%; }}
+  li {{ margin-bottom: .3rem; font-weight: normal; }}
+  li strong, li b {{ font-weight: normal !important; color: #1a1a1a !important; }}
+  img {{ max-width: 100%; display: block; margin: 1rem auto; }}
 </style>
 </head>
 <body>

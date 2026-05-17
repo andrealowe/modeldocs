@@ -805,7 +805,7 @@ async def index(req: Request):
                         Span(cls="fa-icon fa-flask ctx-item-icon"),
                         Div(
                             Span("Experiments", cls="ctx-item-title"),
-                            Span("MLflow runs and logged metrics", cls="ctx-item-desc"),
+                            Span("Domino experiment runs and logged metrics", cls="ctx-item-desc"),
                             cls="ctx-item-text",
                         ),
                         cls="ctx-item-body",

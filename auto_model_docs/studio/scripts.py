@@ -831,9 +831,9 @@ MAIN_DOM_JS = r"""
             if (statusKey === 'succeeded' && j.dataset_path) {
                 docCell = '<td><button class="job-view-btn" data-dataset="' + _esc(j.dataset_path) + '" data-type="docx">View</button></td>';
                 nbCell = '<td>'
-                    + '<div style="display:flex;flex-direction:column;gap:4px;align-items:flex-start">'
+                    + '<div style="display:flex;flex-direction:row;gap:6px;align-items:center;flex-wrap:wrap">'
                     + '<button type="button" class="job-view-btn" data-dataset="' + _esc(j.dataset_path) + '" data-type="ipynb">Download</button>'
-                    + '<button type="button" class="job-view-btn job-view-btn--secondary" title="Open in Domino workspace">View in Workspace</button>'
+                    + '<button type="button" class="job-view-btn job-view-btn--secondary" title="Open in Domino workspace">Workspace</button>'
                     + '</div></td>';
             } else if (statusKey === 'succeeded' && documentUrl) {
                 docCell = '<td><a href="' + _esc(documentUrl) + '" target="_blank" rel="noopener noreferrer">View →</a></td>';
@@ -953,7 +953,7 @@ MAIN_DOM_JS = r"""
             var html = _maxJobsWarning(jobs);
             html += '<div class="history-table-wrap">' + _tableHtml(jobs, documentUrl || '') + '</div>';
 
-            var actions = '<a class="primary" title="Refresh job status" id="job-history-refresh-btn" href="#">Refresh</a>';
+            var actions = '<a class="secondary" title="Refresh job status" id="job-history-refresh-btn" href="#">Refresh</a>';
             if (hasQueued) {
                 actions += ' <a class="primary" title="Cancel all queued jobs that haven\'t been submitted yet" id="job-cancel-queued-btn" href="#">Cancel queued</a>';
             }

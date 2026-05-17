@@ -333,9 +333,15 @@ CRITICAL: Only plan content blocks that can be generated from the data provided 
   Include the model name, task context, or relevant metric when available.
 
 Consider what would be most valuable for documenting this section. Guidelines:
-- Keep it scannable: prefer a short narrative (1-2 paragraphs) + a "Key Findings" bullet_list over one long narrative
-- Always include a "Key Findings" bullet_list and/or "Recommended Actions" numbered_list when appropriate
-- Prefer visual content (images, charts, tables) when data allows
+- **ORDERING — strictly follow this sequence:**
+  1. A "Key Findings" bullet_list FIRST (required for most sections — put the most important facts here)
+  2. A short narrative (1 paragraph max, 2-3 sentences) — context and explanation only
+  3. Visual content (chart or image if data allows — strongly preferred)
+  4. A table if structured data is available
+  5. A "Recommended Actions" numbered_list ONLY if actionable recommendations are appropriate
+- Keep Key Findings to 4-6 crisp, specific bullet points
+- Narrative must be MAX 1 paragraph, MAX 3 sentences — do not write walls of text
+- Prefer visual content (images, charts, tables) over long prose
 - Include 2-4 content blocks total — do not over-generate"""
 
 
@@ -446,9 +452,9 @@ def build_narrative_prompt(
 {insights or "No additional insights available."}{artifact_section}{code_section}{mlflow_section}
 
 ## Instructions
-- Write 1-3 SHORT paragraphs (2-4 sentences each) — be concise, not exhaustive
-- Do NOT pad content or repeat facts already stated elsewhere in the document
-- Focus on the most important insight per paragraph
+- Write EXACTLY 1-2 paragraphs — NO MORE. Each paragraph: 2-3 sentences max.
+- Do NOT pad, repeat, or summarise — every sentence must add new information
+- Focus on the single most important insight; secondary points belong in Key Findings bullets
 - Use a formal but accessible tone suitable for a risk committee audience
 - Do NOT use markdown formatting (no #headers, *bullets, or **bold**)
 - Do NOT include a title or section heading at the start — begin directly with content
