@@ -577,11 +577,25 @@ class DocumentBuilder:
         section_citation_ids: List[str] = []
         section_citation_details: dict = {}
 
-        # Add content blocks
+        # Add content blocks (strip accidental section-title prefix from first narrative)
+        _stripped_title = False
         for content in result.contents:
             cleaned_content, citation_ids, citation_details = self._sanitize_content_for_section(
                 content
             )
+            # Strip leading section-title repetition from the first narrative block
+            if not _stripped_title and cleaned_content.block_type == ContentType.NARRATIVE:
+                _stripped_title = True
+                text = cleaned_content.content or ""
+                section_title = result.plan.title or ""
+                if section_title and text.lower().startswith(section_title.lower()):
+                    stripped = text[len(section_title):].lstrip(" :\n\r\t")
+                    if stripped:
+                        cleaned_content = GeneratedContent(
+                            block_type=cleaned_content.block_type,
+                            content=stripped,
+                            metadata=cleaned_content.metadata,
+                        )
             section_citation_ids.extend(citation_ids)
             section_citation_details.update(citation_details)
             self._add_content(doc, cleaned_content, registry)
@@ -887,7 +901,8 @@ class DocumentBuilder:
         for match in CITATION_MARKER_PATTERN.finditer(text or ""):
             if match.start() > last_index:
                 run = para.add_run(text[last_index : match.start()])
-                run.bold = bold_text
+                if bold_text:
+                    run.bold = True
                 if font_size:
                     run.font.size = Pt(font_size)
             citation_id = match.group(1)
@@ -901,7 +916,8 @@ class DocumentBuilder:
 
         if last_index < len(text):
             run = para.add_run(text[last_index:])
-            run.bold = bold_text
+            if bold_text:
+                run.bold = True
             if font_size:
                 run.font.size = Pt(font_size)
 

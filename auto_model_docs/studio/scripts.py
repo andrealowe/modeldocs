@@ -831,9 +831,10 @@ MAIN_DOM_JS = r"""
             if (statusKey === 'succeeded' && j.dataset_path) {
                 docCell = '<td><button class="job-view-btn" data-dataset="' + _esc(j.dataset_path) + '" data-type="docx">View</button></td>';
                 nbCell = '<td>'
+                    + '<div style="display:flex;flex-direction:column;gap:4px;align-items:flex-start">'
                     + '<button class="job-view-btn" data-dataset="' + _esc(j.dataset_path) + '" data-type="ipynb">Download</button>'
-                    + ' <button class="job-view-btn job-view-btn--secondary" title="Open in Domino workspace">View in Workspace</button>'
-                    + '</td>';
+                    + '<button class="job-view-btn job-view-btn--secondary" title="Open in Domino workspace">View in Workspace</button>'
+                    + '</div></td>';
             } else if (statusKey === 'succeeded' && documentUrl) {
                 docCell = '<td><a href="' + _esc(documentUrl) + '" target="_blank" rel="noopener noreferrer">View →</a></td>';
             }

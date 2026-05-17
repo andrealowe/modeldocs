@@ -777,44 +777,83 @@ async def index(req: Request):
     if banner:
         configure_card_children.append(banner)
 
-    # Domino context — checkboxes to select which sources to include
+    # Context sources section
     configure_card_children.append(
         Div(
-            P("Include context", cls="context-sources-label"),
+            Div(
+                Span("Context sources", cls="ctx-section-label"),
+                Span("Select which data sources the report generator will use.", cls="ctx-section-desc"),
+                cls="ctx-section-header",
+            ),
             Div(
                 Label(
-                    Input(type="checkbox", id="ctx-code", checked=True),
-                    Span(cls="fa-icon fa-layer-group context-pill-icon"),
-                    Span("Code", cls="context-pill"),
-                    cls="context-checkbox-item",
+                    Input(type="checkbox", id="ctx-code", checked=True, cls="ctx-checkbox"),
+                    Div(
+                        Span(cls="fa-icon fa-code ctx-item-icon"),
+                        Div(
+                            Span("Code", cls="ctx-item-title"),
+                            Span("Repository files and ML pipeline logic", cls="ctx-item-desc"),
+                            cls="ctx-item-text",
+                        ),
+                        cls="ctx-item-body",
+                    ),
+                    cls="ctx-item",
                 ),
                 Label(
-                    Input(type="checkbox", id="ctx-experiments", checked=True),
-                    Span(cls="fa-icon fa-flask context-pill-icon"),
-                    Span("Experiments", cls="context-pill"),
-                    cls="context-checkbox-item",
+                    Input(type="checkbox", id="ctx-experiments", checked=True, cls="ctx-checkbox"),
+                    Div(
+                        Span(cls="fa-icon fa-flask ctx-item-icon"),
+                        Div(
+                            Span("Experiments", cls="ctx-item-title"),
+                            Span("MLflow runs and logged metrics", cls="ctx-item-desc"),
+                            cls="ctx-item-text",
+                        ),
+                        cls="ctx-item-body",
+                    ),
+                    cls="ctx-item",
                 ),
                 Label(
-                    Input(type="checkbox", id="ctx-data", checked=True),
-                    Span(cls="fa-icon fa-database context-pill-icon"),
-                    Span("Data", cls="context-pill"),
-                    cls="context-checkbox-item",
+                    Input(type="checkbox", id="ctx-data", checked=True, cls="ctx-checkbox"),
+                    Div(
+                        Span(cls="fa-icon fa-database ctx-item-icon"),
+                        Div(
+                            Span("Data", cls="ctx-item-title"),
+                            Span("Data sources and feature definitions", cls="ctx-item-desc"),
+                            cls="ctx-item-text",
+                        ),
+                        cls="ctx-item-body",
+                    ),
+                    cls="ctx-item",
                 ),
                 Label(
-                    Input(type="checkbox", id="ctx-metrics", checked=True),
-                    Span(cls="fa-icon fa-chart-line context-pill-icon"),
-                    Span("Model metrics", cls="context-pill"),
-                    cls="context-checkbox-item",
+                    Input(type="checkbox", id="ctx-metrics", checked=True, cls="ctx-checkbox"),
+                    Div(
+                        Span(cls="fa-icon fa-chart-line ctx-item-icon"),
+                        Div(
+                            Span("Model metrics", cls="ctx-item-title"),
+                            Span("Performance and evaluation results", cls="ctx-item-desc"),
+                            cls="ctx-item-text",
+                        ),
+                        cls="ctx-item-body",
+                    ),
+                    cls="ctx-item",
                 ),
                 Label(
-                    Input(type="checkbox", id="ctx-governance", checked=True),
-                    Span(cls="fa-icon fa-shield-halved context-pill-icon"),
-                    Span("Governance evidence", cls="context-pill"),
-                    cls="context-checkbox-item",
+                    Input(type="checkbox", id="ctx-governance", checked=True, cls="ctx-checkbox"),
+                    Div(
+                        Span(cls="fa-icon fa-shield-halved ctx-item-icon"),
+                        Div(
+                            Span("Governance evidence", cls="ctx-item-title"),
+                            Span("Artifacts, approvals, and audit trail", cls="ctx-item-desc"),
+                            cls="ctx-item-text",
+                        ),
+                        cls="ctx-item-body",
+                    ),
+                    cls="ctx-item",
                 ),
-                cls="context-pills-row",
+                cls="ctx-grid",
             ),
-            cls="context-explainer-card",
+            cls="ctx-section",
         )
     )
 

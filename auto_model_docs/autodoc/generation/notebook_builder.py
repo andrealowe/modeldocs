@@ -583,15 +583,22 @@ check_and_install_packages(REQUIRED_PACKAGES)'''
     def _create_content_cells(
         self, content: GeneratedContent, registry: CitationRegistry
     ) -> List[nbformat.NotebookNode]:
-        """Create one or more cells for a content block."""
+        """Create one or more cells for a content block.
+
+        The notebook focuses on data: tables, charts, and images only.
+        Narrative and list blocks are omitted to keep the notebook scannable.
+        """
         cells: List[nbformat.NotebookNode] = []
 
-        if content.block_type == ContentType.NARRATIVE:
-            cells.append(
-                self._create_narrative_cell(content.content, content.metadata, registry)
-            )
+        # Skip narrative and list content — notebook is tables/figures only
+        if content.block_type in (
+            ContentType.NARRATIVE,
+            ContentType.BULLET_LIST,
+            ContentType.NUMBERED_LIST,
+        ):
+            return cells
 
-        elif content.block_type == ContentType.TABLE:
+        if content.block_type == ContentType.TABLE:
             cells.append(self._create_table_cell(content.content))
 
         elif content.block_type == ContentType.CHART:

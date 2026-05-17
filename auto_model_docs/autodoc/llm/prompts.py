@@ -28,8 +28,9 @@ SYSTEM_SECTION_PLANNER = (
 )
 
 SYSTEM_NARRATIVE_WRITER = (
-    "You are a technical documentation writer. "
-    "Write clear, informative content about machine learning models. "
+    "You are a technical documentation writer for model risk and compliance reports. "
+    "Write concise, scannable content — keep paragraphs short (2-4 sentences max). "
+    "Prefer specific facts over general statements. "
     "Explain the 'why' behind technical decisions, not just the 'what'. "
     "Do not repeat information that would typically be covered in other sections. "
     "When referencing specific metrics, parameters, or code, include citation markers using the format [@citation_id] where citation_id is provided in the evidence sections."
@@ -331,7 +332,11 @@ CRITICAL: Only plan content blocks that can be generated from the data provided 
   (e.g., "Feature Importance - XGBoost Credit Risk Model" instead of just "Feature Importance").
   Include the model name, task context, or relevant metric when available.
 
-Consider what would be most valuable for documenting this section. Prefer visual content (images, charts, tables) when data allows. Include 2-4 content blocks."""
+Consider what would be most valuable for documenting this section. Guidelines:
+- Keep it scannable: prefer a short narrative (1-2 paragraphs) + a "Key Findings" bullet_list over one long narrative
+- Always include a "Key Findings" bullet_list and/or "Recommended Actions" numbered_list when appropriate
+- Prefer visual content (images, charts, tables) when data allows
+- Include 2-4 content blocks total — do not over-generate"""
 
 
 SECTION_PLANNING_SCHEMA: Dict[str, Any] = {
@@ -441,15 +446,14 @@ def build_narrative_prompt(
 {insights or "No additional insights available."}{artifact_section}{code_section}{mlflow_section}
 
 ## Instructions
-- Write 2-4 paragraphs of clear, professional prose
-- Focus on insights and explanations, not just listing facts
-- Explain the "why" behind decisions, not just the "what"
-- Use a formal but accessible tone
-- Do NOT use markdown formatting (no headers, bullets, or bold)
-- Do NOT include a title or heading
-- Just write the paragraph content directly
+- Write 1-3 SHORT paragraphs (2-4 sentences each) — be concise, not exhaustive
+- Do NOT pad content or repeat facts already stated elsewhere in the document
+- Focus on the most important insight per paragraph
+- Use a formal but accessible tone suitable for a risk committee audience
+- Do NOT use markdown formatting (no #headers, *bullets, or **bold**)
+- Do NOT include a title or section heading at the start — begin directly with content
 - When you reference specific metrics, code, or MLflow data, include a citation using the format [@citation_id] where the citation_id comes from the evidence sections above
-- Only cite when making specific factual claims from the evidence - do not over-cite
+- Only cite when making specific factual claims from the evidence — do not over-cite
 
 CRITICAL: Only describe metrics, results, and methodologies that are explicitly mentioned in the context above.
 If cross-validation or other specific techniques are not mentioned in the context, do NOT claim they were performed.
@@ -650,8 +654,12 @@ CRITICAL: Only include information that is explicitly provided in the context ab
 Do NOT fabricate metrics, statistics, or claim methodologies that are not mentioned.
 If specific data is not available, focus on what IS known from the context.
 
-Generate a descriptive title for this list (e.g., "Key Limitations", "Recommended Actions", "Implementation Steps")
-and 5-10 concise, informative items using ONLY the data provided above.
+Generate a descriptive title for this list. Prefer titles that will render as styled callout boxes:
+- "Key Findings" → rendered as a highlighted findings box
+- "Recommended Actions" → rendered as a highlighted actions box
+Use one of these titles when appropriate to the content.
+
+Generate 4-8 concise, specific items using ONLY the data provided above.
 When list items reference specific data from the evidence sections, include citation markers using [@citation_id] format."""
 
 

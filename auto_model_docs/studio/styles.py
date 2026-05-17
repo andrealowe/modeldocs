@@ -310,7 +310,7 @@ a:hover { color: var(--primary-container); }
     display: grid;
     grid-template-columns: minmax(360px, 1.45fr) minmax(280px, 0.85fr);
     gap: 1.25rem;
-    align-items: stretch;
+    align-items: start;
 }
 .studio-col-main,
 .studio-col-right {
@@ -1886,9 +1886,10 @@ select.hw-tier-select option {
 
 /* ── Model context banner ─────────────────────────────────────────── */
 .model-context-banner {
-    background: var(--primary-container);
-    border: 1.5px solid var(--primary-fixed-dim);
-    border-radius: 10px;
+    background: #E5F6F8;
+    border: 1.5px solid #17A2B8;
+    border-left: 4px solid #17A2B8;
+    border-radius: 8px;
     padding: 12px 16px;
     margin-bottom: 16px;
 }
@@ -1899,7 +1900,7 @@ select.hw-tier-select option {
 }
 .model-banner-icon {
     font-size: 20px;
-    color: var(--primary);
+    color: #17A2B8;
     flex-shrink: 0;
 }
 .model-banner-text {
@@ -1908,8 +1909,9 @@ select.hw-tier-select option {
 }
 .model-banner-eyebrow {
     font-size: 10px;
-    font-weight: 600;
+    font-weight: 700;
     letter-spacing: 0.08em;
+    color: #0D6B7A !important;
     text-transform: uppercase;
     color: var(--on-primary-container);
     opacity: 0.7;
@@ -1925,12 +1927,12 @@ select.hw-tier-select option {
 .model-banner-name {
     font-size: 15px;
     font-weight: 600;
-    color: var(--on-primary-container);
+    color: #0D6B7A;
 }
 .model-banner-version {
     font-size: 12px;
     font-weight: 500;
-    color: var(--on-primary-container);
+    color: #17A2B8;
     background: var(--primary-fixed-dim);
     border-radius: 4px;
     padding: 1px 6px;
@@ -1959,58 +1961,90 @@ select.hw-tier-select option {
     padding: 12px 14px;
     margin-bottom: 16px;
 }
-.context-pills-row {
+/* ── Context sources section ──────────────────────────────────────── */
+.ctx-section {
+    padding: 14px 0 4px;
+    border-top: 1px solid var(--outline-variant);
+    margin-top: 4px;
+}
+.ctx-section-header {
     display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 16px;
-    margin-bottom: 8px;
+    flex-direction: column;
+    gap: 2px;
+    margin-bottom: 12px;
 }
-.context-pill {
-    background: var(--primary);
-    color: #fff;
-    font-size: 11px;
-    font-weight: 600;
-    border-radius: 99px;
-    padding: 2px 10px;
-    letter-spacing: 0.02em;
-}
-.context-pill-icon {
+.ctx-section-label {
     font-size: 12px;
-    color: var(--primary);
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--on-surface-variant);
 }
-.context-explainer-text {
+.ctx-section-desc {
     font-size: 12px;
     color: var(--on-surface-variant);
-    margin: 0;
-    line-height: 1.5;
 }
-.context-checkbox-item {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
+.ctx-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px 12px;
+}
+.ctx-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
     cursor: pointer;
-    font-size: 13px;
-    font-weight: 400;
-    color: var(--on-surface);
+    padding: 8px 10px;
+    border-radius: 6px;
+    border: 1px solid var(--outline-variant);
+    background: var(--surface);
+    transition: border-color 0.15s, background 0.15s;
     user-select: none;
-    transition: color 0.12s;
 }
-.context-checkbox-item input[type="checkbox"] {
+.ctx-item:has(.ctx-checkbox:checked) {
+    border-color: var(--primary);
+    background: var(--primary-fixed);
+}
+.ctx-checkbox {
     accent-color: var(--primary);
     width: 14px;
     height: 14px;
     cursor: pointer;
     flex-shrink: 0;
+    margin-top: 2px;
 }
-.context-checkbox-item:has(input:checked) {
-    color: var(--on-surface);
-    font-weight: 500;
+.ctx-item-body {
+    display: flex;
+    align-items: flex-start;
+    gap: 7px;
+    min-width: 0;
 }
-.context-checkbox-item .context-pill-icon {
+.ctx-item-icon {
+    font-size: 13px;
+    color: var(--primary);
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+.ctx-item-text {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+}
+.ctx-item-title {
     font-size: 12px;
-    color: var(--on-surface-variant);
+    font-weight: 600;
+    color: var(--on-surface);
+    line-height: 1.3;
 }
+.ctx-item-desc {
+    font-size: 11px;
+    color: var(--on-surface-variant);
+    line-height: 1.3;
+}
+/* Legacy selectors still referenced in scripts.py */
+.context-pills-row, .context-pill, .context-pill-icon,
+.context-explainer-text, .context-checkbox-item { display: none; }
 
 /* ── Template editor ──────────────────────────────────────────────── */
 .template-selector-row {

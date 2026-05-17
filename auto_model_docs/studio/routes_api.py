@@ -309,15 +309,20 @@ def register_api_routes(rt):
 <head>
 <meta charset="utf-8">
 <style>
-  body {{ font-family: Georgia, serif; max-width: 860px; margin: 2rem auto; padding: 0 1.5rem; color: #1a1a1a; line-height: 1.7; }}
-  h1, h2, h3 {{ font-family: system-ui, sans-serif; color: #111; }}
-  h1 {{ font-size: 1.6rem; border-bottom: 2px solid #ddd; padding-bottom: .5rem; }}
-  h2 {{ font-size: 1.25rem; margin-top: 2rem; }}
-  h3 {{ font-size: 1.05rem; }}
-  table {{ border-collapse: collapse; width: 100%; margin: 1rem 0; font-size: .9rem; }}
-  th, td {{ border: 1px solid #ccc; padding: .4rem .7rem; text-align: left; }}
-  th {{ background: #f4f4f4; font-weight: 600; }}
-  p {{ margin: .6rem 0; }}
+  body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 860px; margin: 2rem auto; padding: 0 1.5rem 3rem; color: #1a1a1a; line-height: 1.65; font-size: 14px; font-weight: normal; }}
+  h1, h2, h3 {{ font-family: inherit; color: #1F4E79; font-weight: 700; }}
+  h1 {{ font-size: 1.35rem; border-bottom: 2px solid #1F4E79; padding-bottom: .4rem; margin-top: 2rem; }}
+  h2 {{ font-size: 1.1rem; margin-top: 1.5rem; color: #2E74B5; }}
+  h3 {{ font-size: 1rem; margin-top: 1.2rem; }}
+  p {{ margin: .5rem 0 .9rem; font-weight: normal; }}
+  strong, b {{ font-weight: 600; }}
+  em, i {{ font-style: italic; font-weight: normal; color: #555; }}
+  table {{ border-collapse: collapse; width: 100%; margin: 1rem 0; font-size: .875rem; }}
+  th {{ background: #1F4E79; color: #fff; font-weight: 600; padding: .4rem .7rem; text-align: left; }}
+  td {{ border: 1px solid #ddd; padding: .4rem .7rem; }}
+  tr:nth-child(even) td {{ background: #f7f8fc; }}
+  ul, ol {{ margin: .4rem 0 .8rem 1.2rem; padding: 0; }}
+  li {{ margin-bottom: .3rem; }}
   img {{ max-width: 100%; }}
 </style>
 </head>
