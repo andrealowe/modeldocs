@@ -1056,6 +1056,44 @@ async def _on_startup():
 
     init_layout()
     _state._STARTUP_WARNINGS = _validate_environment()
+    _ensure_demo_files()
+
+
+def _ensure_demo_files() -> None:
+    """Generate the pre-built demo report files if they are missing."""
+    import logging
+    from pathlib import Path
+    _log = logging.getLogger(__name__)
+    demo_dir = Path(__file__).resolve().parent / "studio" / "demo"
+    docx = demo_dir / "NBT-CR-EL-007_Compliance_Report_v7_0.docx"
+    ipynb_src = Path(__file__).resolve().parent.parent / "uploads" / "NBT-CR-EL-007_Compliance_Report.ipynb"
+    ipynb_dst = demo_dir / "NBT-CR-EL-007_Compliance_Report.ipynb"
+
+    demo_dir.mkdir(parents=True, exist_ok=True)
+
+    if not docx.exists():
+        try:
+            import sys
+            sys.path.insert(0, str(Path(__file__).resolve().parent))
+            from build_demo_report import build
+            build()
+            import shutil
+            generated = Path(__file__).resolve().parent.parent / "uploads" / "NBT-CR-EL-007_Compliance_Report_v7_0.docx"
+            if generated.exists():
+                shutil.copy2(generated, docx)
+                _log.info("Demo docx generated and copied to %s", docx)
+            else:
+                _log.warning("build_demo_report ran but output not found at %s", generated)
+        except Exception:
+            _log.exception("Could not generate demo docx")
+
+    if not ipynb_dst.exists() and ipynb_src.exists():
+        import shutil
+        shutil.copy2(ipynb_src, ipynb_dst)
+        _log.info("Demo ipynb copied to %s", ipynb_dst)
+
+    _log.info("Demo files: docx=%s (exists=%s)  ipynb=%s (exists=%s)",
+              docx, docx.exists(), ipynb_dst, ipynb_dst.exists())
 
 
 # ---------------------------------------------------------------------------

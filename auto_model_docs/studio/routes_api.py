@@ -13,8 +13,9 @@ from starlette.responses import FileResponse, Response
 from autodoc.core.models import DocumentSpec
 from authorization import require_project_write
 
-# Resolved once at import time so closures don't rely on __file__ inside a nested scope
-_UPLOADS_DIR = Path(__file__).resolve().parent.parent.parent / "uploads"
+# Demo files live inside the package (studio/demo/) so they're always present
+# regardless of which directory the app process started from.
+_DEMO_DIR = Path(__file__).resolve().parent / "demo"
 
 from .state import (
     _resolve_request_project_id,
@@ -258,8 +259,8 @@ def register_api_routes(rt):
 
     # ── Demo output files — served from uploads/ for preview/demo mode ───
 
-    _DEMO_DOCX = _UPLOADS_DIR / "NBT-CR-EL-007_Compliance_Report_v7_0.docx"
-    _DEMO_IPYNB = _UPLOADS_DIR / "NBT-CR-EL-007_Compliance_Report.ipynb"
+    _DEMO_DOCX = _DEMO_DIR / "NBT-CR-EL-007_Compliance_Report_v7_0.docx"
+    _DEMO_IPYNB = _DEMO_DIR / "NBT-CR-EL-007_Compliance_Report.ipynb"
     logger.info("Demo files: docx=%s (exists=%s)  ipynb=%s (exists=%s)",
                 _DEMO_DOCX, _DEMO_DOCX.exists(), _DEMO_IPYNB, _DEMO_IPYNB.exists())
 
