@@ -262,3 +262,24 @@ def get_user_jobs(project_id: str, owner_id: str, limit: int = 50) -> list[dict[
 
 def cancel_queued_jobs(project_id: str, owner_id: str) -> None:
     return None
+
+
+def clear_job_history(project_id: str, owner_id: str) -> None:
+    """Delete all job history rows for a user in a project."""
+    if not owner_id or not project_id:
+        return
+    db_file = _db_path()
+    if db_file is None:
+        return
+    try:
+        conn = _connect(db_file)
+        try:
+            _ensure_schema(conn)
+            conn.execute(
+                "DELETE FROM studio_jobs WHERE owner_id = ? AND project_id = ?",
+                (owner_id, project_id),
+            )
+        finally:
+            conn.close()
+    except Exception:
+        logger.exception("clear_job_history failed for project %s", project_id)

@@ -904,10 +904,11 @@ MAIN_DOM_JS = r"""
             var html = _maxJobsWarning(jobs);
             html += '<div class="history-table-wrap">' + _tableHtml(jobs, documentUrl || '') + '</div>';
 
-            var actions = '<a class="primary" title="Refresh job status from Domino" id="job-history-refresh-btn" href="#">Refresh</a>';
+            var actions = '<a class="primary" title="Refresh job status" id="job-history-refresh-btn" href="#">Refresh</a>';
             if (hasQueued) {
                 actions += ' <a class="primary" title="Cancel all queued jobs that haven\'t been submitted yet" id="job-cancel-queued-btn" href="#">Cancel queued</a>';
             }
+            actions += ' <a class="secondary" title="Clear all job history" id="job-clear-history-btn" href="#">Clear history</a>';
             html += '<div class="history-actions">' + actions + '</div>';
 
             el.innerHTML = html;
@@ -918,6 +919,22 @@ MAIN_DOM_JS = r"""
                 refreshBtn.addEventListener('click', function(e) {
                     e.preventDefault();
                     fetchJobHistory();
+                });
+            }
+
+            // Wire clear history button
+            var clearBtn = el.querySelector('#job-clear-history-btn');
+            if (clearBtn) {
+                clearBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    fetch(_adUrl('clear-job-history') + queryJobHistory(), { method: 'POST' })
+                        .then(_checkResp).then(function(r) { return r.json(); })
+                        .then(function(data) {
+                            renderJobHistory(data.jobs || [], '');
+                        })
+                        .catch(function(err) {
+                            console.error('[job-history] Clear history failed:', err);
+                        });
                 });
             }
 

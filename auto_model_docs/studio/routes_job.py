@@ -108,11 +108,13 @@ def register_job_routes(rt):
         if inline_content and (not job_request.spec_path or job_request.spec_path == "__inline__"):
             try:
                 import time as _time
-                from dataset_manager import DatasetManager
+                from pathlib import Path as _Path
                 _ts = int(_time.time())
                 _fname = f"_inline_spec_{_ts}.yaml"
-                DatasetManager.write_file(ensured["id"], _fname, inline_content.encode("utf-8"))
-                job_request.spec_path = f"{dataset_mount_path.rstrip('/')}/{_fname}"
+                _spec_path = _Path(dataset_mount_path) / _fname
+                _spec_path.parent.mkdir(parents=True, exist_ok=True)
+                _spec_path.write_text(inline_content, encoding="utf-8")
+                job_request.spec_path = str(_spec_path)
             except Exception:
                 logger.exception("Failed to save inline spec content to dataset")
                 return _json({"error": "Could not save the template to the dataset. Try again later."}, 500)
@@ -166,4 +168,16 @@ def register_job_routes(rt):
         return _json({"ok": True, "jobs": jobs, "document_url": _job_history_document_url(project_id)})
 
     rt("/cancel-queued-jobs")(cancel_queued_jobs)
+
+    async def clear_job_history(req: Request):
+        owner_id = _current_owner_id()
+        if not owner_id:
+            return _json({"ok": False, "error": "not authenticated"})
+        project_id = _resolve_request_project_id(req)
+        if not project_id:
+            return _json({"ok": False, "error": "missing project_id"})
+        domino_job_store.clear_job_history(project_id, owner_id)
+        return _json({"ok": True, "jobs": [], "document_url": ""})
+
+    rt("/clear-job-history")(clear_job_history)
 
