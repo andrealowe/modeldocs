@@ -832,7 +832,7 @@ MAIN_DOM_JS = r"""
                 docCell = '<td><button class="job-view-btn" data-dataset="' + _esc(j.dataset_path) + '" data-type="docx">View</button></td>';
                 nbCell = '<td>'
                     + '<button class="job-view-btn" data-dataset="' + _esc(j.dataset_path) + '" data-type="ipynb">Download</button>'
-                    + ' <button class="job-view-btn job-view-btn--secondary" disabled title="Open in Domino workspace">View in Workspace</button>'
+                    + ' <button class="job-view-btn job-view-btn--secondary" title="Open in Domino workspace">View in Workspace</button>'
                     + '</td>';
             } else if (statusKey === 'succeeded' && documentUrl) {
                 docCell = '<td><a href="' + _esc(documentUrl) + '" target="_blank" rel="noopener noreferrer">View →</a></td>';
@@ -845,12 +845,13 @@ MAIN_DOM_JS = r"""
                 + '</tr>';
         }
 
+        var _viewerDatasetPath = '';
+
         function openDocViewer(datasetPath, type) {
             var modal = document.getElementById('doc-viewer-modal');
             var frame = document.getElementById('doc-viewer-frame');
             if (!modal || !frame) return;
             if (type === 'ipynb') {
-                // Download notebook directly
                 var a = document.createElement('a');
                 a.href = _adUrl('job-notebook') + '?dataset_path=' + encodeURIComponent(datasetPath);
                 a.download = '';
@@ -859,21 +860,58 @@ MAIN_DOM_JS = r"""
                 document.body.removeChild(a);
                 return;
             }
+            _viewerDatasetPath = datasetPath;
+            _setViewerMode('view');
             frame.src = _adUrl('job-render') + '?dataset_path=' + encodeURIComponent(datasetPath);
             modal.style.display = 'flex';
             document.body.style.overflow = 'hidden';
         }
 
+        function _setViewerMode(mode) {
+            var frame = document.getElementById('doc-viewer-frame');
+            var editor = document.getElementById('doc-viewer-editor');
+            var toolbar = document.getElementById('doc-viewer-toolbar');
+            var editBtn = document.getElementById('doc-viewer-edit-btn');
+            if (!frame || !editor || !toolbar || !editBtn) return;
+            if (mode === 'edit') {
+                frame.style.display = 'none';
+                editor.style.display = 'block';
+                toolbar.style.display = 'flex';
+                editBtn.textContent = 'View';
+                editBtn.classList.add('doc-viewer-edit-btn--active');
+                if (!editor.dataset.loaded) {
+                    editor.value = 'Loading\u2026';
+                    fetch(_adUrl('job-markdown') + '?dataset_path=' + encodeURIComponent(_viewerDatasetPath))
+                        .then(function(r) { return r.text(); })
+                        .then(function(md) { editor.value = md; editor.dataset.loaded = '1'; })
+                        .catch(function() { editor.value = 'Could not load markdown.'; });
+                }
+            } else {
+                frame.style.display = 'block';
+                editor.style.display = 'none';
+                toolbar.style.display = 'none';
+                editBtn.textContent = 'Edit';
+                editBtn.classList.remove('doc-viewer-edit-btn--active');
+            }
+        }
+
         function closeDocViewer() {
             var modal = document.getElementById('doc-viewer-modal');
             var frame = document.getElementById('doc-viewer-frame');
+            var editor = document.getElementById('doc-viewer-editor');
             if (modal) { modal.style.display = 'none'; document.body.style.overflow = ''; }
             if (frame) { frame.src = 'about:blank'; }
+            if (editor) { editor.value = ''; delete editor.dataset.loaded; }
+            _setViewerMode('view');
         }
 
         document.addEventListener('click', function(e) {
             var btn = e.target.closest('.job-view-btn');
-            if (btn) { e.preventDefault(); openDocViewer(btn.dataset.dataset, btn.dataset.type); }
+            if (btn && btn.dataset.type) { e.preventDefault(); openDocViewer(btn.dataset.dataset, btn.dataset.type); }
+            if (e.target.id === 'doc-viewer-edit-btn') {
+                var isEdit = e.target.textContent.trim() === 'Edit';
+                _setViewerMode(isEdit ? 'edit' : 'view');
+            }
             if (e.target.id === 'doc-viewer-close' || e.target.id === 'doc-viewer-modal') { closeDocViewer(); }
         });
 

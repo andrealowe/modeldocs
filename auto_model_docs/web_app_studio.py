@@ -925,10 +925,23 @@ async def index(req: Request):
                 Div(
                     Div(
                         Span("Generated Document", cls="doc-viewer-title"),
-                        Button("✕", id="doc-viewer-close", cls="doc-viewer-close", type="button"),
+                        Div(
+                            Button("Edit", id="doc-viewer-edit-btn", cls="doc-viewer-edit-btn", type="button"),
+                            Button("✕", id="doc-viewer-close", cls="doc-viewer-close", type="button"),
+                            cls="doc-viewer-header-actions",
+                        ),
                         cls="doc-viewer-header",
                     ),
                     Iframe(id="doc-viewer-frame", src="about:blank", cls="doc-viewer-iframe"),
+                    Textarea(id="doc-viewer-editor", cls="doc-viewer-editor", style="display:none;", spellcheck="false"),
+                    Div(
+                        Button("Download Word", cls="doc-dl-btn", type="button"),
+                        Button("Download PDF", cls="doc-dl-btn", type="button"),
+                        Button("Download Markdown", cls="doc-dl-btn", type="button"),
+                        id="doc-viewer-toolbar",
+                        cls="doc-viewer-toolbar",
+                        style="display:none;",
+                    ),
                     cls="doc-viewer-inner",
                 ),
                 id="doc-viewer-modal",

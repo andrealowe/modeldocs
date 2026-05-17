@@ -349,6 +349,28 @@ def register_api_routes(rt):
 
     rt("/job-notebook")(job_notebook)
 
+    async def job_markdown(req: Request):
+        """Return the most recently generated report as Markdown text."""
+        dataset_path = req.query_params.get("dataset_path", "").strip()
+        if not dataset_path:
+            return Response("dataset_path is required", status_code=400)
+        docs_dir = Path(dataset_path) / "docs"
+        if not docs_dir.exists():
+            return Response("No documents found yet.", status_code=404, media_type="text/plain")
+        docx_files = sorted(docs_dir.glob("*.docx"), key=lambda p: p.stat().st_mtime, reverse=True)
+        if not docx_files:
+            return Response("No documents found yet.", status_code=404, media_type="text/plain")
+        try:
+            import mammoth
+            with open(docx_files[0], "rb") as f:
+                result = mammoth.convert_to_markdown(f)
+            return Response(result.value, media_type="text/plain; charset=utf-8")
+        except Exception as exc:
+            logger.exception("mammoth markdown conversion failed for %s", docx_files[0])
+            return Response(f"Could not convert document: {exc}", status_code=500, media_type="text/plain")
+
+    rt("/job-markdown")(job_markdown)
+
     async def api_code_root_options(req: Request):
         pid = (_resolve_request_project_id(req) or "").strip()
 

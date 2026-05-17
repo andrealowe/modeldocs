@@ -1963,7 +1963,7 @@ select.hw-tier-select option {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 6px;
+    gap: 16px;
     margin-bottom: 8px;
 }
 .context-pill {
@@ -1988,32 +1988,28 @@ select.hw-tier-select option {
 .context-checkbox-item {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
+    gap: 6px;
     cursor: pointer;
-    font-size: 12px;
-    font-weight: 600;
+    font-size: 13px;
+    font-weight: 400;
     color: var(--on-surface);
-    background: var(--surface-variant);
-    border: 1.5px solid var(--outline-variant);
-    border-radius: 99px;
-    padding: 3px 10px 3px 8px;
-    transition: background 0.15s, border-color 0.15s;
     user-select: none;
+    transition: color 0.12s;
 }
 .context-checkbox-item input[type="checkbox"] {
     accent-color: var(--primary);
-    width: 13px;
-    height: 13px;
+    width: 14px;
+    height: 14px;
     cursor: pointer;
+    flex-shrink: 0;
 }
 .context-checkbox-item:has(input:checked) {
-    background: color-mix(in srgb, var(--primary) 12%, transparent);
-    border-color: var(--primary);
-    color: var(--primary);
+    color: var(--on-surface);
+    font-weight: 500;
 }
 .context-checkbox-item .context-pill-icon {
-    font-size: 11px;
-    color: inherit;
+    font-size: 12px;
+    color: var(--on-surface-variant);
 }
 
 /* ── Template editor ──────────────────────────────────────────────── */
@@ -2216,7 +2212,6 @@ select.hw-tier-select option {
 .job-view-btn--secondary:hover { background: color-mix(in srgb, var(--primary) 10%, transparent); opacity: 1; }
 .job-view-btn--secondary[disabled] {
     opacity: 0.55;
-    cursor: not-allowed;
 }
 
 /* ── Document viewer modal ────────────────────────────────────────── */
@@ -2264,9 +2259,66 @@ select.hw-tier-select option {
     border-radius: 4px;
 }
 .doc-viewer-close:hover { background: #e8e8e8; }
+.doc-viewer-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.doc-viewer-edit-btn {
+    background: transparent;
+    border: 1.5px solid var(--primary);
+    color: var(--primary);
+    border-radius: 5px;
+    padding: 3px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+.doc-viewer-edit-btn:hover { background: color-mix(in srgb, var(--primary) 10%, transparent); }
+.doc-viewer-edit-btn--active {
+    background: var(--primary);
+    color: #fff;
+}
+.doc-viewer-edit-btn--active:hover { opacity: 0.88; }
 .doc-viewer-iframe {
     flex: 1;
     border: none;
     width: 100%;
 }
+.doc-viewer-editor {
+    flex: 1;
+    border: none;
+    width: 100%;
+    padding: 2rem 2.5rem;
+    font-family: 'Fira Mono', 'Consolas', monospace;
+    font-size: 13px;
+    line-height: 1.7;
+    color: #1a1a1a;
+    background: #fafafa;
+    resize: none;
+    outline: none;
+    box-sizing: border-box;
+}
+.doc-viewer-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border-top: 1px solid #e0e0e0;
+    background: #f7f7f7;
+    flex-shrink: 0;
+}
+.doc-dl-btn {
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    padding: 5px 16px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.15s;
+}
+.doc-dl-btn:hover { opacity: 0.85; }
 """
