@@ -133,7 +133,7 @@ a:hover { color: var(--primary-container); }
     gap: 0.75rem;
 }
 .domino-header-inner svg {
-    height: 32px;
+    height: 40px;
     width: auto;
     display: block;
     flex-shrink: 0;
@@ -379,12 +379,12 @@ a:hover { color: var(--primary-container); }
 }
 .studio-spec-block .spec-section-heading {
     font-family: var(--font-headline);
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--on-surface);
-    margin: 0;
-    letter-spacing: -0.01em;
-    line-height: 1.25;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--on-surface-variant);
+    margin: 12px 0 0;
+    letter-spacing: 0;
+    line-height: 1.3;
 }
 .studio-spec-block .spec-hint-download-row {
     margin-bottom: 0.45rem;
