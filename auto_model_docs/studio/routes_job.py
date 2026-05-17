@@ -111,13 +111,12 @@ def register_job_routes(rt):
                 from pathlib import Path as _Path
                 _ts = int(_time.time())
                 _fname = f"_inline_spec_{_ts}.yaml"
-                _spec_path = _Path(dataset_mount_path) / _fname
-                _spec_path.parent.mkdir(parents=True, exist_ok=True)
+                _spec_path = _Path("/tmp") / _fname
                 _spec_path.write_text(inline_content, encoding="utf-8")
                 job_request.spec_path = str(_spec_path)
             except Exception:
-                logger.exception("Failed to save inline spec content to dataset")
-                return _json({"error": "Could not save the template to the dataset. Try again later."}, 500)
+                logger.exception("Failed to save inline spec content to /tmp")
+                return _json({"error": "Could not save the template. Try again later."}, 500)
 
         try:
             require_domino_job_start(job_request.project_id)
