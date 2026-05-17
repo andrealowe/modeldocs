@@ -257,6 +257,83 @@ def register_api_routes(rt):
 
     rt("/api/download-compliance-template")(api_download_compliance_template)
 
+    # ── Shared HTML renderer for .docx → HTML (used by demo and real job routes) ──
+
+    def _docx_to_html_response(docx_path: Path) -> Response:
+        try:
+            import mammoth
+            with open(docx_path, "rb") as f:
+                result = mammoth.convert_to_html(f)
+            body_html = result.value
+        except Exception as exc:
+            logger.exception("mammoth conversion failed for %s", docx_path)
+            return Response(f"Could not render document: {exc}", status_code=500, media_type="text/plain")
+
+        html = f"""<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 860px; margin: 2rem auto; padding: 0 1.5rem 3rem; color: #1a1a1a; line-height: 1.65; font-size: 14px; font-weight: normal; }}
+  h1, h2, h3 {{ font-family: inherit; color: #1F4E79; font-weight: 700; }}
+  h1 {{ font-size: 1.35rem; border-bottom: 2px solid #1F4E79; padding-bottom: .4rem; margin-top: 2rem; }}
+  h2 {{ font-size: 1.1rem; margin-top: 1.5rem; color: #2E74B5; }}
+  h3 {{ font-size: 1rem; margin-top: 1.2rem; }}
+  p {{ margin: .5rem 0 .9rem; font-weight: normal; color: #1a1a1a; }}
+  p strong, p b, p span {{ font-weight: normal !important; color: #1a1a1a !important; }}
+  td p strong, td p b, th p strong, th p b {{ font-weight: 600 !important; color: inherit !important; }}
+  em, i {{ font-style: italic; font-weight: normal; color: #555; }}
+  table {{ border-collapse: collapse; width: 100%; margin: 1rem 0; font-size: .875rem; }}
+  th {{ background: #1F4E79; color: #fff; font-weight: 600; padding: .4rem .7rem; text-align: left; }}
+  td {{ border: 1px solid #ddd; padding: .4rem .7rem; color: #1a1a1a; }}
+  tr:nth-child(even) td {{ background: #f7f8fc; }}
+  ul, ol {{ margin: .4rem 0 .8rem 1.2rem; padding: 0; }}
+  li {{ margin-bottom: .3rem; font-weight: normal; }}
+  li strong, li b {{ font-weight: normal !important; color: #1a1a1a !important; }}
+  img {{ max-width: 100%; display: block; margin: 1rem auto; }}
+</style>
+</head>
+<body>
+{body_html}
+<script>
+// Restore callout-box background colours lost during mammoth conversion.
+// Callout boxes are 1-column tables whose first paragraph is a bold uppercase label.
+(function() {{
+  var FINDINGS   = ['KEY FINDINGS', 'KEY FINDING', 'FINDINGS', 'SUMMARY FINDINGS'];
+  var ACTIONS    = ['RECOMMENDED ACTIONS', 'RECOMMENDATIONS', 'ACTION ITEMS', 'NEXT STEPS'];
+  document.querySelectorAll('table').forEach(function(tbl) {{
+    // Only target single-column tables (callout boxes, not data tables)
+    var rows = tbl.rows;
+    if (!rows.length) return;
+    var cols = rows[0].cells.length;
+    if (cols !== 1) return;
+    var cell = rows[0].cells[0];
+    var firstP = cell.querySelector('p');
+    if (!firstP) return;
+    var label = (firstP.textContent || '').trim().toUpperCase();
+    var isFindings = FINDINGS.some(function(k) {{ return label === k; }});
+    var isActions  = ACTIONS.some(function(k)  {{ return label === k; }});
+    if (!isFindings && !isActions) return;
+    if (isFindings) {{
+      tbl.style.cssText = 'border:none!important;margin:1rem 0;';
+      cell.style.cssText = 'background:#E8EBF9;border-left:4px solid #1F4E79!important;border-top:none!important;border-right:none!important;border-bottom:none!important;padding:.6rem .9rem;';
+      firstP.style.cssText = 'font-weight:700!important;color:#1F4E79!important;font-size:.8rem;letter-spacing:.04em;margin-bottom:.4rem;';
+    }} else {{
+      tbl.style.cssText = 'border:none!important;margin:1rem 0;';
+      cell.style.cssText = 'background:#E2F0E8;border-left:4px solid #2E7D32!important;border-top:none!important;border-right:none!important;border-bottom:none!important;padding:.6rem .9rem;';
+      firstP.style.cssText = 'font-weight:700!important;color:#2E7D32!important;font-size:.8rem;letter-spacing:.04em;margin-bottom:.4rem;';
+    }}
+    // Remove borders from all other cells in this table
+    Array.from(tbl.querySelectorAll('td')).forEach(function(td) {{
+      if (td !== cell) td.style.border = 'none';
+    }});
+  }});
+}})();
+</script>
+</body>
+</html>"""
+        return Response(html, media_type="text/html")
+
     # ── Demo output files — served from uploads/ for preview/demo mode ───
 
     _DEMO_DOCX = _DEMO_DIR / "NBT-CR-EL-007_Compliance_Report_v7_0.docx"
@@ -293,46 +370,24 @@ def register_api_routes(rt):
         if not _DEMO_DOCX.exists():
             logger.error("Demo docx not found at %s", _DEMO_DOCX)
             return Response(f"Demo file not found: {_DEMO_DOCX}", status_code=404)
+        return _docx_to_html_response(_DEMO_DOCX)
+
+    rt("/demo/report-render")(demo_report_render)
+
+    async def demo_report_markdown(req: Request):
+        """Return the pre-built demo .docx as Markdown text for the Edit pane."""
+        if not _DEMO_DOCX.exists():
+            return Response(f"Demo file not found: {_DEMO_DOCX}", status_code=404, media_type="text/plain")
         try:
             import mammoth
             with open(_DEMO_DOCX, "rb") as f:
-                result = mammoth.convert_to_html(f)
-            body_html = result.value
+                result = mammoth.convert_to_markdown(f)
+            return Response(result.value, media_type="text/plain; charset=utf-8")
         except Exception as exc:
-            logger.exception("mammoth conversion failed for demo docx")
-            return Response(f"Could not render document: {exc}", status_code=500, media_type="text/plain")
+            logger.exception("mammoth markdown conversion failed for demo docx")
+            return Response(f"Could not convert document: {exc}", status_code=500, media_type="text/plain")
 
-        html = f"""<!DOCTYPE html>
-<html>
-<head>
-<meta charset="utf-8">
-<style>
-  body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 860px; margin: 2rem auto; padding: 0 1.5rem 3rem; color: #1a1a1a; line-height: 1.65; font-size: 14px; font-weight: normal; }}
-  h1, h2, h3 {{ font-family: inherit; color: #1F4E79; font-weight: 700; }}
-  h1 {{ font-size: 1.35rem; border-bottom: 2px solid #1F4E79; padding-bottom: .4rem; margin-top: 2rem; }}
-  h2 {{ font-size: 1.1rem; margin-top: 1.5rem; color: #2E74B5; }}
-  h3 {{ font-size: 1rem; margin-top: 1.2rem; }}
-  p {{ margin: .5rem 0 .9rem; font-weight: normal; color: #1a1a1a; }}
-  p strong, p b, p span {{ font-weight: normal !important; color: #1a1a1a !important; }}
-  td p strong, td p b, th p strong, th p b {{ font-weight: 600 !important; color: inherit !important; }}
-  em, i {{ font-style: italic; font-weight: normal; color: #555; }}
-  table {{ border-collapse: collapse; width: 100%; margin: 1rem 0; font-size: .875rem; }}
-  th {{ background: #1F4E79; color: #fff; font-weight: 600; padding: .4rem .7rem; text-align: left; }}
-  td {{ border: 1px solid #ddd; padding: .4rem .7rem; color: #1a1a1a; }}
-  tr:nth-child(even) td {{ background: #f7f8fc; }}
-  ul, ol {{ margin: .4rem 0 .8rem 1.2rem; padding: 0; }}
-  li {{ margin-bottom: .3rem; font-weight: normal; }}
-  li strong, li b {{ font-weight: normal !important; color: #1a1a1a !important; }}
-  img {{ max-width: 100%; display: block; margin: 1rem auto; }}
-</style>
-</head>
-<body>
-{body_html}
-</body>
-</html>"""
-        return Response(html, media_type="text/html")
-
-    rt("/demo/report-render")(demo_report_render)
+    rt("/demo/report-markdown")(demo_report_markdown)
 
     async def job_render(req: Request):
         """Convert the most recently generated .docx in a dataset to HTML for in-app display."""
@@ -348,46 +403,7 @@ def register_api_routes(rt):
         if not docx_files:
             return Response("No documents found yet.", status_code=404, media_type="text/plain")
 
-        docx_path = docx_files[0]
-        try:
-            import mammoth
-            with open(docx_path, "rb") as f:
-                result = mammoth.convert_to_html(f)
-            body_html = result.value
-        except Exception as exc:
-            logger.exception("mammoth conversion failed for %s", docx_path)
-            return Response(f"Could not render document: {exc}", status_code=500, media_type="text/plain")
-
-        html = f"""<!DOCTYPE html>
-<html>
-<head>
-<meta charset="utf-8">
-<style>
-  body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 860px; margin: 2rem auto; padding: 0 1.5rem 3rem; color: #1a1a1a; line-height: 1.65; font-size: 14px; font-weight: normal; }}
-  h1, h2, h3 {{ font-family: inherit; color: #1F4E79; font-weight: 700; }}
-  h1 {{ font-size: 1.35rem; border-bottom: 2px solid #1F4E79; padding-bottom: .4rem; margin-top: 2rem; }}
-  h2 {{ font-size: 1.1rem; margin-top: 1.5rem; color: #2E74B5; }}
-  h3 {{ font-size: 1rem; margin-top: 1.2rem; }}
-  p {{ margin: .5rem 0 .9rem; font-weight: normal; color: #1a1a1a; }}
-  p strong, p b, p span {{ font-weight: normal !important; color: #1a1a1a !important; }}
-  td p strong, td p b, th p strong, th p b {{ font-weight: 600 !important; color: inherit !important; }}
-  em, i {{ font-style: italic; font-weight: normal; color: #555; }}
-  table {{ border-collapse: collapse; width: 100%; margin: 1rem 0; font-size: .875rem; }}
-  th {{ background: #1F4E79; color: #fff; font-weight: 600; padding: .4rem .7rem; text-align: left; }}
-  td {{ border: 1px solid #ddd; padding: .4rem .7rem; color: #1a1a1a; }}
-  tr:nth-child(even) td {{ background: #f7f8fc; }}
-  ul, ol {{ margin: .4rem 0 .8rem 1.2rem; padding: 0; }}
-  li {{ margin-bottom: .3rem; font-weight: normal; }}
-  li strong, li b {{ font-weight: normal !important; color: #1a1a1a !important; }}
-  img {{ max-width: 100%; display: block; margin: 1rem auto; }}
-</style>
-</head>
-<body>
-{body_html}
-</body>
-</html>"""
-
-        return Response(html, media_type="text/html")
+        return _docx_to_html_response(docx_files[0])
 
     rt("/job-render")(job_render)
 

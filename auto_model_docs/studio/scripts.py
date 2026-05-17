@@ -889,7 +889,10 @@ MAIN_DOM_JS = r"""
                 editBtn.classList.add('doc-viewer-edit-btn--active');
                 if (!editor.dataset.loaded) {
                     editor.value = 'Loading\u2026';
-                    fetch(_adUrl('job-markdown') + '?dataset_path=' + encodeURIComponent(_viewerDatasetPath))
+                    var mdUrl = _viewerDatasetPath === '__demo__'
+                        ? _adUrl('demo/report-markdown')
+                        : _adUrl('job-markdown') + '?dataset_path=' + encodeURIComponent(_viewerDatasetPath);
+                    fetch(mdUrl)
                         .then(function(r) { return r.text(); })
                         .then(function(md) { editor.value = md; editor.dataset.loaded = '1'; })
                         .catch(function() { editor.value = 'Could not load markdown.'; });
