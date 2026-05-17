@@ -92,15 +92,15 @@ def register_job_routes(rt):
             return _json({"error": str(e)}, 400)
         if not job_request.project_id:
             return _json({"error": "Project ID is required."}, 400)
+        # Use a writable local output directory; the app-context dataset mount is read-only.
+        import os as _os
+        dataset_mount_path = _os.path.join("/tmp", "modeldocs", job_request.project_id)
         try:
-            ensured = domino_datasets.ensure_dataset(job_request.project_id)
-            dataset_mount_path = domino_datasets.resolve_dataset_mount_path(ensured)
+            import pathlib as _pathlib
+            _pathlib.Path(dataset_mount_path).mkdir(parents=True, exist_ok=True)
         except Exception:
-            logger.exception("ensure_dataset or mount path resolution failed for project %s", job_request.project_id)
-            return _json(
-                {"error": "Could not prepare the documentation dataset. Try again later."},
-                500,
-            )
+            logger.exception("Could not create output directory %s", dataset_mount_path)
+            return _json({"error": "Could not prepare the output directory. Try again later."}, 500)
 
         # If the user edited the template inline, save the content to the dataset
         # and repoint spec_path to the saved file so the Domino job can find it.
