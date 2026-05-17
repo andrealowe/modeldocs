@@ -104,7 +104,7 @@ class Settings(BaseSettings):
     exclude_patterns: list = Field(
         default=["tests/", "test_", "__pycache__/", ".git/", "node_modules/",
                  "vendor/", "vendored/", ".tox/", ".venv/", "venv/",
-                 ".egg-info/", "dist/", "build/", ".mypy_cache/"],
+                 ".egg-info/", "dist/", "build/", ".mypy_cache/", "sample_projects/"],
         description="Path patterns to exclude from scanning",
         validation_alias=AliasChoices("AUTODOC_EXCLUDE_PATTERNS", "EXCLUDE_PATTERNS"),
     )

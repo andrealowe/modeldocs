@@ -825,30 +825,37 @@ MAIN_DOM_JS = r"""
             var status = j.status || 'queued';
             var statusKey = String(status).toLowerCase();
             var statusCls = 'history-status history-status-' + statusKey;
-            var tier = j.hardware_tier || '—';
             var submitted = j.submitted_at ? j.submitted_at.slice(0, 16).replace('T', ' ') : '—';
-            var linkCell = j.job_url
-                ? '<td><a href="' + _esc(j.job_url) + '" target="_blank" rel="noopener noreferrer">View →</a></td>'
-                : '<td>—</td>';
             var docCell = '<td>—</td>';
+            var nbCell = '<td>—</td>';
             if (statusKey === 'succeeded' && j.dataset_path) {
-                docCell = '<td><button class="job-view-btn" data-dataset="' + _esc(j.dataset_path) + '">View</button></td>';
+                docCell = '<td><button class="job-view-btn" data-dataset="' + _esc(j.dataset_path) + '" data-type="docx">View</button></td>';
+                nbCell = '<td><button class="job-view-btn" data-dataset="' + _esc(j.dataset_path) + '" data-type="ipynb">Notebook</button></td>';
             } else if (statusKey === 'succeeded' && documentUrl) {
                 docCell = '<td><a href="' + _esc(documentUrl) + '" target="_blank" rel="noopener noreferrer">View →</a></td>';
             }
             return '<tr>'
-                + '<td title="' + _esc(tier) + '">' + _esc(tier) + '</td>'
                 + '<td><span class="' + statusCls + '">' + _esc(statusKey.toUpperCase()) + '</span></td>'
                 + '<td>' + _esc(submitted) + '</td>'
-                + linkCell
                 + docCell
+                + nbCell
                 + '</tr>';
         }
 
-        function openDocViewer(datasetPath) {
+        function openDocViewer(datasetPath, type) {
             var modal = document.getElementById('doc-viewer-modal');
             var frame = document.getElementById('doc-viewer-frame');
             if (!modal || !frame) return;
+            if (type === 'ipynb') {
+                // Download notebook directly
+                var a = document.createElement('a');
+                a.href = _adUrl('job-notebook') + '?dataset_path=' + encodeURIComponent(datasetPath);
+                a.download = '';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                return;
+            }
             frame.src = _adUrl('job-render') + '?dataset_path=' + encodeURIComponent(datasetPath);
             modal.style.display = 'flex';
             document.body.style.overflow = 'hidden';
@@ -863,7 +870,7 @@ MAIN_DOM_JS = r"""
 
         document.addEventListener('click', function(e) {
             var btn = e.target.closest('.job-view-btn');
-            if (btn) { e.preventDefault(); openDocViewer(btn.dataset.dataset); }
+            if (btn) { e.preventDefault(); openDocViewer(btn.dataset.dataset, btn.dataset.type); }
             if (e.target.id === 'doc-viewer-close' || e.target.id === 'doc-viewer-modal') { closeDocViewer(); }
         });
 
@@ -884,7 +891,7 @@ MAIN_DOM_JS = r"""
         }
 
         function _tableHtml(jobs, documentUrl) {
-            var header = '<thead><tr><th>Tier</th><th>Status</th><th>Submitted</th><th>Link</th><th>Document</th></tr></thead>';
+            var header = '<thead><tr><th>Status</th><th>Submitted</th><th>Document</th><th>Notebook</th></tr></thead>';
             var du = documentUrl || '';
             var rows = jobs.map(function(j) { return _jobRow(j, du); }).join('');
             return '<table class="history-table">' + header + '<tbody>' + rows + '</tbody></table>';
@@ -990,7 +997,7 @@ MAIN_DOM_JS = r"""
                 notebook_path: '',
                 notebook_from_cache: false,
                 filtered_experiment_names: val('field-filtered_experiment_names'),
-                filtered_model_names: val('field-filtered_model_names'),
+                filtered_model_names: val('field-filtered_model_names') || val('field-model_id'),
                 latest_only: chk('field-latest_only'),
                 hardware_tier: val('field-hardware_tier'),
                 provider_base_url: val('field-provider_base_url'),

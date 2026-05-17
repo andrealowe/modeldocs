@@ -330,6 +330,25 @@ def register_api_routes(rt):
 
     rt("/job-render")(job_render)
 
+    async def job_notebook(req: Request):
+        """Download the most recently generated .ipynb from a dataset."""
+        dataset_path = req.query_params.get("dataset_path", "").strip()
+        if not dataset_path:
+            return Response("dataset_path is required", status_code=400)
+        docs_dir = Path(dataset_path) / "docs"
+        if not docs_dir.exists():
+            return Response("No notebooks found yet.", status_code=404)
+        ipynb_files = sorted(docs_dir.glob("*.ipynb"), key=lambda p: p.stat().st_mtime, reverse=True)
+        if not ipynb_files:
+            return Response("No notebooks found yet.", status_code=404)
+        return FileResponse(
+            str(ipynb_files[0]),
+            media_type="application/x-ipynb+json",
+            filename=ipynb_files[0].name,
+        )
+
+    rt("/job-notebook")(job_notebook)
+
     async def api_code_root_options(req: Request):
         pid = (_resolve_request_project_id(req) or "").strip()
 
