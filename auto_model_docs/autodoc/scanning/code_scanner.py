@@ -132,10 +132,22 @@ class CodeScanner:
             report(0.90)
 
             if not batch_results:
-                raise ScannerError(
-                    "All analysis batches failed. No results to merge. "
-                    "Check LLM provider connectivity and timeout settings."
+                logger.warning(
+                    "All analysis batches failed (skipped %d files). "
+                    "Returning empty code context. "
+                    "Check LLM provider connectivity and timeout settings.",
+                    len(skipped_files),
                 )
+                context = CodeContext(
+                    files=ranked_files,
+                    insights="Code analysis unavailable: all batches failed.",
+                    language=self.profile.name,
+                    skipped_files=skipped_files,
+                    scan_incomplete=True,
+                )
+                context.readme = self._read_readme()
+                report(1.0)
+                return context
 
             # ── Stage 4: Merge results ────────────────────────────────
             context = self._merge_results(batch_results, ranked_files)
@@ -538,7 +550,10 @@ class CodeScanner:
             all_data_sources.extend(result.get("data_sources", []))
 
             # Merge hyperparameters (later batches don't overwrite)
-            for k, v in result.get("hyperparameters", {}).items():
+            hyperparams = result.get("hyperparameters", {})
+            if not isinstance(hyperparams, dict):
+                hyperparams = {}
+            for k, v in hyperparams.items():
                 if k not in merged_hyperparams:
                     merged_hyperparams[k] = v
 
@@ -618,6 +633,7 @@ class CodeScanner:
             except Exception:
                 continue
 
+        raw_hyperparams = result.get("hyperparameters", {})
         return CodeContext(
             files=[],
             model_classes=result.get("model_classes", []),
@@ -625,7 +641,7 @@ class CodeScanner:
             target_variable=result.get("target_variable"),
             transformations=result.get("transformations", []),
             ml_task_type=result.get("ml_task_type"),
-            hyperparameters=result.get("hyperparameters", {}),
+            hyperparameters=raw_hyperparams if isinstance(raw_hyperparams, dict) else {},
             data_sources=result.get("data_sources", []),
             insights=result.get("insights", ""),
             code_evidence=evidence_items,
