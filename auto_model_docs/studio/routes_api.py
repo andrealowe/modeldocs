@@ -13,6 +13,9 @@ from starlette.responses import FileResponse, Response
 from autodoc.core.models import DocumentSpec
 from authorization import require_project_write
 
+# Resolved once at import time so closures don't rely on __file__ inside a nested scope
+_UPLOADS_DIR = Path(__file__).resolve().parent.parent.parent / "uploads"
+
 from .state import (
     _resolve_request_project_id,
     domino_client,
@@ -254,43 +257,48 @@ def register_api_routes(rt):
     rt("/api/download-compliance-template")(api_download_compliance_template)
 
     # ── Demo output files — served from uploads/ for preview/demo mode ───
-    _UPLOADS_DIR = Path(__file__).resolve().parent.parent.parent / "uploads"
+
+    _DEMO_DOCX = _UPLOADS_DIR / "NBT-CR-EL-007_Compliance_Report_v7_0.docx"
+    _DEMO_IPYNB = _UPLOADS_DIR / "NBT-CR-EL-007_Compliance_Report.ipynb"
+    logger.info("Demo files: docx=%s (exists=%s)  ipynb=%s (exists=%s)",
+                _DEMO_DOCX, _DEMO_DOCX.exists(), _DEMO_IPYNB, _DEMO_IPYNB.exists())
 
     async def demo_report_docx():
-        p = _UPLOADS_DIR / "NBT-CR-EL-007_Compliance_Report_v7_0.docx"
-        if not p.exists():
-            return Response("Demo file not found", status_code=404)
+        if not _DEMO_DOCX.exists():
+            logger.error("Demo docx not found at %s", _DEMO_DOCX)
+            return Response(f"Demo file not found: {_DEMO_DOCX}", status_code=404)
         return FileResponse(
-            str(p),
+            str(_DEMO_DOCX),
             media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-            filename="NBT-CR-EL-007_Compliance_Report_v7_0.docx",
+            filename=_DEMO_DOCX.name,
         )
 
     rt("/demo/report-docx")(demo_report_docx)
 
     async def demo_report_ipynb():
-        p = _UPLOADS_DIR / "NBT-CR-EL-007_Compliance_Report.ipynb"
-        if not p.exists():
-            return Response("Demo file not found", status_code=404)
+        if not _DEMO_IPYNB.exists():
+            logger.error("Demo ipynb not found at %s", _DEMO_IPYNB)
+            return Response(f"Demo file not found: {_DEMO_IPYNB}", status_code=404)
         return FileResponse(
-            str(p),
+            str(_DEMO_IPYNB),
             media_type="application/x-ipynb+json",
-            filename="NBT-CR-EL-007_Compliance_Report.ipynb",
+            filename=_DEMO_IPYNB.name,
         )
 
     rt("/demo/report-ipynb")(demo_report_ipynb)
 
     async def demo_report_render(req: Request):
         """Render the pre-built demo .docx as HTML via mammoth."""
-        p = _UPLOADS_DIR / "NBT-CR-EL-007_Compliance_Report_v7_0.docx"
-        if not p.exists():
-            return Response("Demo file not found", status_code=404)
+        if not _DEMO_DOCX.exists():
+            logger.error("Demo docx not found at %s", _DEMO_DOCX)
+            return Response(f"Demo file not found: {_DEMO_DOCX}", status_code=404)
         try:
             import mammoth
-            with open(p, "rb") as f:
+            with open(_DEMO_DOCX, "rb") as f:
                 result = mammoth.convert_to_html(f)
             body_html = result.value
         except Exception as exc:
+            logger.exception("mammoth conversion failed for demo docx")
             return Response(f"Could not render document: {exc}", status_code=500, media_type="text/plain")
 
         html = f"""<!DOCTYPE html>
