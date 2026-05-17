@@ -49,7 +49,7 @@ STUDIO_CSS = """
     /* Functional */
     --success: #28A464;
     --success-container: #e8f6ee;
-    --warning: #cc8b00;
+    --warning: #CCB718;
     --warning-container: #fff4db;
     --info: #0070CC;
     --info-container: #e8f1fb;
@@ -447,7 +447,7 @@ select:not(.code-root-prefix) {
     background-color: #ffffff;
     border: 1px solid #d6d6d6;
     border-radius: 4px;
-    padding: 0 1.65rem 0 10px;
+    padding: 0 2rem 0 14px;
     height: 36px;
     color: #2e2e38;
     font-family: var(--font-body);
@@ -463,11 +463,11 @@ select:not(.code-root-prefix) {
     cursor: pointer;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%2365657b' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
-    background-position: right 0.55rem center;
+    background-position: right 0.75rem center;
 }
 textarea {
     height: auto;
-    padding: 8px 10px;
+    padding: 8px 14px;
     min-height: 72px;
 }
 input[type="text"]:not(.code-root-suffix):hover,
@@ -1141,8 +1141,7 @@ a.primary:active {
     color: #ffffff;
 }
 button.primary:disabled {
-    background: #ebebeb;
-    color: #65657b;
+    opacity: 0.4;
     cursor: not-allowed;
 }
 a.primary:visited {
