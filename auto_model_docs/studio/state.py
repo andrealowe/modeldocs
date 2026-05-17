@@ -101,6 +101,7 @@ class JobRequest:
     max_backoff: float
     backoff_jitter: float
     notebook_from_cache: bool
+    spec_content: str = ""
 
 
 @dataclass
@@ -166,6 +167,16 @@ def _resolve_request_project_id(req) -> Optional[str]:
             if s:
                 return s
     return None
+
+
+def _resolve_request_model_id(req) -> Optional[str]:
+    raw = req.query_params.get("modelId", "").strip()
+    return raw or None
+
+
+def _resolve_request_model_version_id(req) -> Optional[str]:
+    raw = req.query_params.get("modelVersionId", "").strip()
+    return raw or None
 
 
 def _resolve_request_dataset_ids(req) -> tuple[str, str]:

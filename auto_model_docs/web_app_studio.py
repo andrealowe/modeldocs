@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""FastHTML UI for Auto Model Documentation — Blueprint Enterprise redesign.
+"""ModelDocs — FastHTML web app for Domino model documentation generation.
 
-This is the slim orchestrator that imports from the studio package and
-assembles the application.
+Serves as a Domino Extension mounted on the "Models" mount point. When opened
+from a model's detail page, Domino passes modelId and modelVersionId as query
+parameters; the app also expects projectId so it knows where to run jobs.
 """
 
 from __future__ import annotations
@@ -27,6 +28,8 @@ from default_consts import DEFAULT_OPENAI_MODEL
 from studio.state import (
     _STARTUP_WARNINGS,
     _resolve_request_project_id,
+    _resolve_request_model_id,
+    _resolve_request_model_version_id,
     domino_client,
 )
 from studio.styles import STUDIO_CSS
@@ -48,15 +51,65 @@ from domino_job_store import ensure_database
 
 
 # ---------------------------------------------------------------------------
-# Create FastHTML app with styles and scripts
+# Template loader JS — injected per-request so the app URL prefix is correct
+# ---------------------------------------------------------------------------
+
+_TEMPLATE_EDITOR_JS = r"""
+(function() {
+    // ── Template selector ─────────────────────────────────────────────────
+    var tplSelect = document.getElementById('template-selector');
+    var tplTextarea = document.getElementById('field-spec_content');
+    var tplLoading = document.getElementById('template-loading-indicator');
+
+    function setTemplateLoading(on) {
+        if (tplLoading) tplLoading.style.display = on ? '' : 'none';
+        if (tplTextarea) tplTextarea.disabled = !!on;
+    }
+
+    function loadTemplate(name) {
+        if (!tplTextarea) return;
+        if (!name) { tplTextarea.value = ''; return; }
+        setTemplateLoading(true);
+        fetch(_adUrl('api/template-content') + '?name=' + encodeURIComponent(name))
+            .then(function(r) { return r.text(); })
+            .then(function(text) {
+                tplTextarea.value = text;
+                setTemplateLoading(false);
+            })
+            .catch(function() { setTemplateLoading(false); });
+    }
+
+    if (tplSelect) {
+        tplSelect.addEventListener('change', function() {
+            loadTemplate(tplSelect.value);
+        });
+        // Auto-load the initially selected template on page load
+        if (tplSelect.value) loadTemplate(tplSelect.value);
+    }
+
+    // ── Output format selector (UI-only) ──────────────────────────────────
+    var fmtRadios = document.querySelectorAll('input[name="output_format"]');
+    fmtRadios.forEach(function(r) {
+        r.addEventListener('change', function() {
+            var label = document.getElementById('generate-btn-label');
+            if (label) {
+                var fmt = r.value === 'word' ? 'Word' : r.value === 'markdown' ? 'Markdown' : 'LaTeX';
+                label.textContent = 'Generate ' + fmt + ' Documentation';
+            }
+        });
+    });
+})();
+"""
+
+
+# ---------------------------------------------------------------------------
+# FastHTML app
 # ---------------------------------------------------------------------------
 
 app, rt = fast_app(
     pico=False,
     hdrs=(
         Style(STUDIO_CSS),
-        # NOTE: output defaults script is injected per-request in index()
-        # so it picks up the resolved target project name.
         Script(MAIN_DOM_JS),
     )
 )
@@ -65,7 +118,144 @@ ensure_database()
 
 
 # ---------------------------------------------------------------------------
-# index() — Blueprint Enterprise 2-Column Layout
+# Helpers
+# ---------------------------------------------------------------------------
+
+def _model_context_banner(model_id: Optional[str], model_version_id: Optional[str]) -> Optional[object]:
+    """Render the model context pill/banner when opened via a Models Extension."""
+    if not model_id:
+        return None
+    version_label = f"v{model_version_id}" if model_version_id else "latest"
+    return Div(
+        Div(
+            Span(cls="fa-icon fa-cube model-banner-icon"),
+            Div(
+                Span("Model context", cls="model-banner-eyebrow"),
+                Div(
+                    Span(model_id, cls="model-banner-name", id="model-banner-name"),
+                    Span(version_label, cls="model-banner-version"),
+                    cls="model-banner-title-row",
+                ),
+                cls="model-banner-text",
+            ),
+            Div(
+                Span(cls="fa-icon fa-circle-check model-banner-check"),
+                Span("Loaded", cls="model-banner-loaded-label"),
+                cls="model-banner-loaded",
+            ),
+            cls="model-banner-inner",
+        ),
+        # Hidden inputs so JS can pick up modelId / modelVersionId
+        Input(type="hidden", id="field-model_id", value=model_id or ""),
+        Input(type="hidden", id="field-model_version_id", value=model_version_id or ""),
+        cls="model-context-banner",
+    )
+
+
+def _template_editor_section(project_id: Optional[str]) -> object:
+    """Inline YAML template editor with built-in template selector."""
+    return Div(
+        Div(
+            H4("Template", cls="spec-section-heading"),
+            Div(
+                Label("Built-in template", for_="template-selector"),
+                Select(
+                    Option("Compliance Report", value="compliance", selected=True),
+                    Option("Default (model doc)", value="default"),
+                    id="template-selector",
+                    cls="template-selector-select",
+                ),
+                cls="field template-selector-field",
+            ),
+            Div(
+                Span("Loading template…", id="template-loading-indicator", cls="template-loading-indicator", style="display:none;"),
+                Textarea(
+                    "",
+                    id="field-spec_content",
+                    name="spec_content",
+                    cls="template-editor-textarea",
+                    spellcheck="false",
+                    autocomplete="off",
+                    placeholder="# YAML template will load here — you can edit it freely",
+                    rows=18,
+                ),
+                cls="template-editor-wrap",
+            ),
+            Div(
+                A(
+                    Span(cls="fa-icon fa-download"),
+                    " Download",
+                    href="api/download-compliance-template",
+                    data_app_rel="api/download-compliance-template",
+                    download="compliance_report_spec.yaml",
+                    cls="app-link template-action-link",
+                    id="template-download-link",
+                ),
+                A(
+                    Span(cls="fa-icon fa-upload"),
+                    " Upload custom",
+                    href="#",
+                    id="spec-upload-trigger",
+                    cls="app-link template-action-link",
+                ),
+                Input(
+                    type="file",
+                    accept=".yaml,.yml",
+                    id="spec-machine-upload",
+                    cls="hidden-upload",
+                ),
+                cls="template-action-row",
+            ),
+            # Hidden spec_path field (set to __inline__ by JS when spec_content is present)
+            Input(name="spec_path", id="field-spec_path", type="hidden", value="__inline__"),
+            cls="field studio-spec-block",
+        ),
+        cls="template-editor-section",
+    )
+
+
+def _output_format_selector() -> object:
+    return Div(
+        H4("Output format", cls="spec-section-heading"),
+        Div(
+            Label(
+                Input(type="radio", name="output_format", value="word", checked=True),
+                Div(
+                    Span(cls="fa-icon fa-file-word output-fmt-icon"),
+                    Span("Word (.docx)", cls="output-fmt-label"),
+                    cls="output-fmt-inner",
+                ),
+                cls="output-fmt-option output-fmt-option--active",
+                id="fmt-word",
+            ),
+            Label(
+                Input(type="radio", name="output_format", value="markdown"),
+                Div(
+                    Span(cls="fa-icon fa-file-lines output-fmt-icon"),
+                    Span("Markdown (.md)", cls="output-fmt-label"),
+                    cls="output-fmt-inner",
+                ),
+                cls="output-fmt-option",
+                id="fmt-markdown",
+            ),
+            Label(
+                Input(type="radio", name="output_format", value="latex"),
+                Div(
+                    Span(cls="fa-icon fa-file-code output-fmt-icon"),
+                    Span("LaTeX (.tex)", cls="output-fmt-label"),
+                    cls="output-fmt-inner",
+                ),
+                cls="output-fmt-option",
+                id="fmt-latex",
+            ),
+            cls="output-fmt-group",
+        ),
+        cls="output-format-section",
+    )
+
+
+# ---------------------------------------------------------------------------
+# index() — ModelDocs 2-Column Layout
 # ---------------------------------------------------------------------------
 
 @rt("/")
@@ -74,13 +264,14 @@ async def index(req: Request):
     scheme = req.headers.get("x-forwarded-proto", "https")
     domino_client.set_ui_host(host, scheme)
 
-    # projectId query param is required. Domino's reverse proxy may strip query params
-    # from the iframe URL, so if it's missing we serve a bootstrap page whose JS
-    # extracts the ID from the parent frame, hash fragment, or postMessage and reloads.
     project_id = _resolve_request_project_id(req)
+    model_id = _resolve_request_model_id(req)
+    model_version_id = _resolve_request_model_version_id(req)
+
+    # Bootstrap page when projectId is missing (Extension passes it separately)
     if not project_id:
         return (
-            Title("Auto Model Docs Studio — Domino"),
+            Title("ModelDocs — Domino"),
             Style(fontawesome_faces_css()),
             Script(STUDIO_FONT_BASE_PATCH_JS),
             Style(STUDIO_CSS),
@@ -136,16 +327,13 @@ async def index(req: Request):
                 })();
             """),
             Div(
-                Div(
-                    NotStr(_LOGO_SVG),
-                    cls="domino-header-inner",
-                ),
+                Div(NotStr(_LOGO_SVG), cls="domino-header-inner"),
                 cls="domino-header",
             ),
             Div(
                 Div(
                     Div(
-                        Span("Resolving project...", cls="bootstrap-status-text"),
+                        Span("Resolving project…", cls="bootstrap-status-text"),
                     ),
                     cls="bootstrap-status-wrap",
                 ),
@@ -155,13 +343,12 @@ async def index(req: Request):
                         P(
                             "This app must be launched with a ",
                             Code("projectId"),
-                            " query parameter so it knows which project to run jobs in, "
-                            "store spec files to, and write output to.",
-                        ),
-                        P(
-                            "If you're running this as a Domino App, make sure the app is "
-                            "configured to pass the project ID to the iframe URL.",
-                            cls="bootstrap-error-detail",
+                            " query parameter. If you're opening it as a Domino Extension, "
+                            "make sure both ",
+                            Code("projectId"),
+                            " and ",
+                            Code("modelId"),
+                            " are passed.",
                         ),
                         cls="bootstrap-error-card",
                     ),
@@ -173,6 +360,7 @@ async def index(req: Request):
             ),
         )
 
+    # Resolve project display name
     project_display_name: Optional[str] = None
     if project_id:
         info = domino_client.resolve_project(project_id)
@@ -187,11 +375,13 @@ async def index(req: Request):
     except Exception:
         _default_openai_base_url = "https://api.openai.com/v1"
         _default_anthropic_base_url = "https://api.anthropic.com"
+
     import auth_context
     try:
         owner_id = auth_context.get_viewing_user().id
     except Exception:
         owner_id = ""
+
     tier_options = []
     try:
         tier_rows = domino_client.list_hardware_tiers(project_id=project_id) or []
@@ -208,159 +398,23 @@ async def index(req: Request):
 
     compute_env_errors = validate_studio_domino_compute_environment(domino_client)
     studio_errors_panel = Div(id="studio-errors-panel", cls="studio-errors-panel")
-    _insight_children = [
+
+    # ── Advanced settings modal ───────────────────────────────────────────
+    advanced_modal_fields = [
         Div(
-            H3("How it works"),
-            P(
-                "Select a spec file to define your documentation structure, configure project settings, "
-                "then click Generate documentation. Auto Model Docs scans your codebase and MLflow "
-                "experiments to produce a structured Word document.",
+            Div(
+                Label("Hardware tier", for_="field-hardware_tier"),
+                Span("\u24d8", cls="info-tooltip", data_tooltip="Compute tier for the Domino job."),
+                cls="label-row",
             ),
-            cls="insight-card",
+            Select(
+                *tier_options,
+                name="hardware_tier",
+                id="field-hardware_tier",
+                cls="hw-tier-select",
+            ),
+            cls="field",
         ),
-        studio_errors_panel,
-    ]
-    if compute_env_errors:
-        _insight_children.append(
-            Script(
-                json.dumps(compute_env_errors),
-                id="studio-compute-env-json",
-                type="application/json",
-            )
-        )
-
-    main_col_children = [
-        Div(
-            H2("Configure and run"),
-            cls="col-header",
-        ),
-    ]
-
-    configure_card_children = []
-
-    configure_card_children.append(
-        H3(
-            Span("Target project: ", cls="target-project-label-prefix"),
-            Span(
-                project_display_name or project_id or "",
-                cls="target-project-display",
-            ),
-            cls="target-project-row",
-        ),
-    )
-
-    configure_card_children.append(
-        Div(
-            H4("Spec file selection", cls="spec-section-heading"),
-            Div(
-                P(
-                    "To browse for spec files, select a dataset and a spec file in the navigator below.",
-                    cls="field-hint-text",
-                ),
-                A(
-                    "Download reference template",
-                    href="api/download-template",
-                    data_app_rel="api/download-template",
-                    download="doc_spec_template.yaml",
-                    cls="app-link",
-                ),
-                cls="spec-hint-download-row",
-            ),
-            Div(
-                Label("Dataset", Span(" *", cls="required-star")),
-                Select(
-                    Option("Loading datasets...", value="", disabled=True, selected=True),
-                    id="spec-dataset-select",
-                ),
-                cls="field",
-            ),
-            Div(id="spec-breadcrumb", cls="spec-breadcrumb"),           
-            Div(
-                Div(
-                    Span(cls="fa-icon fa-folder-open spec-file-empty-icon"),
-                    Span("Select a dataset to browse spec files", cls="spec-file-list-empty"),
-                    cls="spec-file-empty",
-                ),
-                id="spec-file-list",
-                cls="spec-file-list",
-            ),
-            A(
-                "Upload spec",
-                href="#",
-                id="spec-upload-trigger",
-                name="spec-upload-trigger",
-                cls="app-link",
-            ),
-            Input(
-                type="file",
-                accept=".yaml,.yml",
-                id="spec-machine-upload",
-                name="spec-machine-upload",
-                cls="hidden-upload",
-            ),
-            Div(
-                Span("Selected:", cls="spec-selected-label"),
-                Input(
-                    name="spec_path",
-                    id="field-spec_path",
-                    type="text",
-                    value="",
-                    placeholder="Select a file, upload, or type a path",
-                    autocomplete="off",
-                    spellcheck="false",
-                    cls="spec-path-input",
-                ),
-                id="spec-selected-indicator",
-                cls="spec-selected-indicator",
-            ),
-            Details(
-                Summary("Filters", cls="advanced-section-summary"),
-                Div(
-                    Div(
-                        Div(
-                            Label("Model names", for_="field-filtered_model_names"),
-                            Span("\u24d8", cls="info-tooltip", data_tooltip="Comma-separated. Supports wildcards: * and ?"),
-                            cls="label-row",
-                        ),
-                        Input(
-                            name="filtered_model_names",
-                            id="field-filtered_model_names",
-                            type="text",
-                            placeholder="model1, churn*, fraud-*",
-                        ),
-                        cls="field",
-                    ),
-                    Div(
-                        Div(
-                            Label("Experiment names", for_="field-filtered_experiment_names"),
-                            Span("\u24d8", cls="info-tooltip", data_tooltip="Comma-separated. Supports wildcards: * and ?"),
-                            cls="label-row",
-                        ),
-                        Input(
-                            name="filtered_experiment_names",
-                            id="field-filtered_experiment_names",
-                            type="text",
-                            placeholder="exp1, exp2, my-experiment*",
-                        ),
-                        cls="field",
-                    ),
-                    Label(
-                        Input(type="checkbox", name="latest_only", id="field-latest_only", checked=True),
-                        Span("Latest version only"),
-                        cls="checkbox-field",
-                    ),
-                    cls="advanced-content",
-                ),
-                cls="advanced-section",
-                open=False,
-            ),
-            cls="field studio-spec-block",
-        )
-    )
-
-    run_card_children = []
-
-    run_card_children.append(
         Div(
             Label("Source code root path", for_="code-root-prefix"),
             Div(
@@ -384,30 +438,6 @@ async def index(req: Request):
                 ),
                 cls="code-root-wrap",
             ),
-            A(
-                "Advanced settings",
-                href="#",
-                id="studio-advanced-open",
-                name="studio-advanced-open",
-                cls="app-link studio-advanced-open",
-            ),
-            cls="field",
-        )
-    )
-
-    advanced_modal_fields = [
-        Div(
-            Div(
-                Label("Hardware tier", for_="field-hardware_tier"),
-                Span("\u24d8", cls="info-tooltip", data_tooltip="Compute tier for the Domino job."),
-                cls="label-row",
-            ),
-            Select(
-                *tier_options,
-                name="hardware_tier",
-                id="field-hardware_tier",
-                cls="hw-tier-select",
-            ),
             cls="field",
         ),
         Div(
@@ -426,7 +456,7 @@ async def index(req: Request):
                 Span(
                     "\u24d8",
                     cls="info-tooltip",
-                    data_tooltip="HTTP base URL for the selected provider (official defaults shown). Use for proxies or compatible gateways.",
+                    data_tooltip="HTTP base URL for the selected provider.",
                 ),
                 cls="label-row",
             ),
@@ -445,11 +475,7 @@ async def index(req: Request):
         Div(
             Div(
                 Label("Model", for_="field-model"),
-                Span(
-                    "\u24d8",
-                    cls="info-tooltip",
-                    data_tooltip="Provider model name.",
-                ),
+                Span("\u24d8", cls="info-tooltip", data_tooltip="Provider model name."),
                 cls="label-row",
             ),
             Input(
@@ -461,6 +487,46 @@ async def index(req: Request):
             ),
             cls="field",
             id="model-name-field",
+        ),
+        Div(
+            H4("Filters", cls="spec-section-heading advanced-filters-heading"),
+            Div(
+                Div(
+                    Div(
+                        Label("MLflow model names", for_="field-filtered_model_names"),
+                        Span("\u24d8", cls="info-tooltip", data_tooltip="Comma-separated. Supports wildcards: * and ?"),
+                        cls="label-row",
+                    ),
+                    Input(
+                        name="filtered_model_names",
+                        id="field-filtered_model_names",
+                        type="text",
+                        placeholder="model1, churn*, fraud-*",
+                    ),
+                    cls="field",
+                ),
+                Div(
+                    Div(
+                        Label("MLflow experiment names", for_="field-filtered_experiment_names"),
+                        Span("\u24d8", cls="info-tooltip", data_tooltip="Comma-separated. Supports wildcards: * and ?"),
+                        cls="label-row",
+                    ),
+                    Input(
+                        name="filtered_experiment_names",
+                        id="field-filtered_experiment_names",
+                        type="text",
+                        placeholder="exp1, exp2, my-experiment*",
+                    ),
+                    cls="field",
+                ),
+                Label(
+                    Input(type="checkbox", name="latest_only", id="field-latest_only", checked=True),
+                    Span("Latest version only"),
+                    cls="checkbox-field",
+                ),
+                cls="advanced-content",
+            ),
+            cls="field",
         ),
     ]
 
@@ -491,33 +557,145 @@ async def index(req: Request):
         aria_hidden="true",
     )
 
-    run_card_children.append(Div(cls="card-content-spacer"))
+    # ── Model context banner ───────────────────────────────────────────────
+    banner = _model_context_banner(model_id, model_version_id)
 
-    run_card_children.append(
+    # ── Left column: model banner + template editor + generate ────────────
+    left_col_children = [
+        Div(H2("Generate documentation"), cls="col-header"),
+    ]
+
+    configure_card_children = []
+
+    # Project header row
+    configure_card_children.append(
+        H3(
+            Span("Project: ", cls="target-project-label-prefix"),
+            Span(
+                project_display_name or project_id or "",
+                cls="target-project-display",
+            ),
+            cls="target-project-row",
+        ),
+    )
+
+    # Model context banner (only when opened from a Model Extension)
+    if banner:
+        configure_card_children.append(banner)
+
+    # Domino context callout — explain what context is being used
+    configure_card_children.append(
         Div(
-            Button("Generate Documentation", type="submit", id="generate-btn", cls="primary"),
+            Div(
+                Span(cls="fa-icon fa-layer-group context-pill-icon"),
+                Span("Code", cls="context-pill"),
+                Span(cls="fa-icon fa-database context-pill-icon"),
+                Span("Data", cls="context-pill"),
+                Span(cls="fa-icon fa-chart-line context-pill-icon"),
+                Span("Model metrics", cls="context-pill"),
+                Span(cls="fa-icon fa-shield-halved context-pill-icon"),
+                Span("Governance evidence", cls="context-pill"),
+                cls="context-pills-row",
+            ),
+            P(
+                "ModelDocs analyses your source code, MLflow experiments, model metrics, "
+                "and governance evidence — then structures all of that context for the LLM "
+                "to produce documentation that matches your template.",
+                cls="context-explainer-text",
+            ),
+            cls="context-explainer-card",
+        )
+    )
+
+    # Template editor
+    configure_card_children.append(_template_editor_section(project_id))
+
+    # Output format selector
+    configure_card_children.append(_output_format_selector())
+
+    # Advanced settings link
+    configure_card_children.append(
+        Div(
+            A(
+                "Advanced settings",
+                href="#",
+                id="studio-advanced-open",
+                name="studio-advanced-open",
+                cls="app-link studio-advanced-open",
+            ),
+            cls="advanced-settings-row",
+        )
+    )
+
+    configure_card_children.append(Div(cls="card-content-spacer"))
+
+    # Generate button
+    configure_card_children.append(
+        Div(
+            Button(
+                Span("Generate Documentation", id="generate-btn-label"),
+                type="submit",
+                id="generate-btn",
+                cls="primary generate-btn-full",
+            ),
             P("", id="generate-run-message", cls="generate-run-message"),
             cls="card-footer generate-actions",
         )
     )
 
-    configure_card_children.extend(run_card_children)
+    left_col_children.append(Div(*configure_card_children, cls="bp-card"))
 
-    main_col_children.append(Div(*configure_card_children, cls="bp-card"))
-
+    # ── Right column: how it works + errors + history ─────────────────────
     right_col_children = [
-        Div(
-            H2("History"),
-            cls="col-header",
-        ),
+        Div(H2("Output"), cls="col-header"),
     ]
+
+    _insight_children = [
+        Div(
+            H3("How it works"),
+            Ol(
+                Li(
+                    Strong("Model context"),
+                    " — ModelDocs is opened from a Domino Model page and receives the model ID and version automatically.",
+                ),
+                Li(
+                    Strong("Template"),
+                    " — pick or edit the YAML template that defines the document structure. It's just a plain text file.",
+                ),
+                Li(
+                    Strong("Generate"),
+                    " — Domino scans your code, data lineage, MLflow metrics, and governance evidence, "
+                    "then calls the LLM to fill in each section.",
+                ),
+                Li(
+                    Strong("Results"),
+                    " — you get a document in your enterprise format (Word, Markdown, LaTeX) "
+                    "plus the Jupyter notebook with all tables, figures, and the code to regenerate them.",
+                ),
+            ),
+            cls="insight-card",
+        ),
+        studio_errors_panel,
+    ]
+    if compute_env_errors:
+        _insight_children.append(
+            Script(
+                json.dumps(compute_env_errors),
+                id="studio-compute-env-json",
+                type="application/json",
+            )
+        )
+
+    right_col_children.append(
+        Div(*_insight_children, cls="studio-page-insight"),
+    )
 
     right_col_children.append(
         Div(
             Div(
                 Div(
                     Span(cls="fa-icon fa-file-lines spec-file-empty-icon"),
-                    Span("No autodocs generated yet.", cls="spec-file-list-empty"),
+                    Span("No documents generated yet.", cls="spec-file-list-empty"),
                     cls="spec-file-empty",
                 ),
                 id="job-history-content",
@@ -527,28 +705,24 @@ async def index(req: Request):
     )
 
     return (
-        Title("Auto Model Docs Studio — Domino"),
+        Title("ModelDocs — Domino"),
         Style(fontawesome_faces_css()),
         Script(STUDIO_FONT_BASE_PATCH_JS),
         # Header
         Div(
             Div(
                 NotStr(_LOGO_SVG),
+                Span("ModelDocs", cls="app-header-title"),
                 cls="domino-header-inner",
             ),
             cls="domino-header",
         ),
-        # Page content
+        # Page
         Div(
-            H1("Auto Model Docs Studio", cls="page-title"),
-            Div(
-                *_insight_children,
-                cls="studio-page-insight",
-            ),
             *_render_warnings_banner(_STARTUP_WARNINGS),
             Form(
                 Div(
-                    Div(*main_col_children, cls="studio-col-main"),
+                    Div(*left_col_children, cls="studio-col-main"),
                     Div(*right_col_children, cls="studio-col-right"),
                     cls="studio-grid",
                 ),
@@ -558,6 +732,8 @@ async def index(req: Request):
                 enctype="multipart/form-data",
             ),
             advanced_modal,
+            # Template editor + format selector JS
+            Script(_TEMPLATE_EDITOR_JS),
             cls="page",
         ),
     )

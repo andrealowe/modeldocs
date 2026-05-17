@@ -218,6 +218,41 @@ def register_api_routes(rt):
 
     rt("/api/download-template")(api_download_template)
 
+    _BUILTIN_TEMPLATES = {
+        "compliance": ("compliance_report_spec.yaml", "compliance_report_spec.yaml"),
+        "default": ("doc_spec.yaml", "doc_spec_template.yaml"),
+    }
+
+    async def api_template_content(req: Request):
+        """Return the YAML text of a named built-in template."""
+        name = req.query_params.get("name", "compliance").strip().lower()
+        entry = _BUILTIN_TEMPLATES.get(name)
+        if not entry:
+            return Response(
+                "Unknown template name",
+                status_code=404,
+                media_type="text/plain",
+            )
+        src_file, _ = entry
+        tpl_path = Path(__file__).resolve().parent.parent / src_file
+        if not tpl_path.exists():
+            return Response("Template file not found", status_code=404, media_type="text/plain")
+        return Response(tpl_path.read_text(encoding="utf-8"), media_type="text/plain")
+
+    rt("/api/template-content")(api_template_content)
+
+    async def api_download_compliance_template():
+        tpl_path = Path(__file__).resolve().parent.parent / "compliance_report_spec.yaml"
+        if not tpl_path.exists():
+            return Response("Template not found", status_code=404)
+        return FileResponse(
+            str(tpl_path),
+            media_type="application/x-yaml",
+            filename="compliance_report_spec.yaml",
+        )
+
+    rt("/api/download-compliance-template")(api_download_compliance_template)
+
     async def api_code_root_options(req: Request):
         pid = (_resolve_request_project_id(req) or "").strip()
 

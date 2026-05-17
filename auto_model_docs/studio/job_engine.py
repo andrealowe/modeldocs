@@ -64,7 +64,9 @@ def _domino_id_str(raw: Any) -> str:
 
 def _validate_job_inputs(req: JobRequest, spec_path: str) -> None:
     if not spec_path or not str(spec_path).strip():
-        raise ValueError("A spec file is required. Please select or upload a spec before generating documentation.")
+        if not (req.spec_content or "").strip():
+            raise ValueError("A spec file is required. Please select or upload a spec before generating documentation.")
+        return  # spec_content will be saved to a file before the job runs
     if not (req.code_root or "").strip():
         raise ValueError("Code root is required. Choose a source code root path before generating documentation.")
     if not _domino_id_str(req.project_id):
@@ -143,6 +145,7 @@ async def _parse_request(req: Request) -> JobRequest:
 
     return JobRequest(
         spec_path=_form_str(body, "spec_path"),
+        spec_content=_form_str(body, "spec_content"),
         provider=_prov,
         model=_model,
         code_root=_form_str(body, "code_root"),

@@ -926,8 +926,11 @@ MAIN_DOM_JS = r"""
                 var el = document.getElementById(id);
                 return !!(el && el.checked);
             }
+            var specContent = val('field-spec_content');
+            var effectiveSpecPath = specContent ? '__inline__' : resolvedSpecPath;
             return {
-                spec_path: resolvedSpecPath,
+                spec_path: effectiveSpecPath,
+                spec_content: specContent,
                 provider: val('field-provider'),
                 model: val('field-model'),
                 code_root: val('field-code_root'),
@@ -949,10 +952,12 @@ MAIN_DOM_JS = r"""
                 e.preventDefault();
 
                 var specPath = document.getElementById('field-spec_path');
-                var hasSpec = specPath && specPath.value.trim();
+                var specContentEl = document.getElementById('field-spec_content');
+                var hasInlineContent = specContentEl && specContentEl.value.trim();
+                var hasSpec = hasInlineContent || (specPath && specPath.value.trim());
                 if (!hasSpec) {
-                    var msg = 'Please select or upload a spec file before generating documentation.';
-                    setStudioErrorSlot('generate', { title: 'Spec file required', items: [msg] });
+                    var msg = 'Please select a template or upload a spec file before generating documentation.';
+                    setStudioErrorSlot('generate', { title: 'Template required', items: [msg] });
                     return;
                 }
                 setStudioErrorSlot('generate', null);

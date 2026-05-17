@@ -1,0 +1,90 @@
+# Document Specification for Compliance Report
+# This YAML file defines the structure and sections of the generated document.
+
+title: "Compliance Report"
+authors: "Model Risk Management"
+
+# Sections to include in the document
+# Use "Section Name: per_model" to create separate subsections for each registered model
+sections:
+  - Executive Summary
+  - Model Identification & Inventory
+  - Regulatory Classification
+  - Conceptual Soundness
+  - Data Lineage & Quality
+  - "Independent Validation: per_model"
+  - "Ongoing Performance Monitoring: per_model"
+  - Limitations & Compensating Controls
+  - Governance & Approvals
+  - Appendix
+
+# Optional hints to guide content generation for specific sections
+hints:
+  "Executive Summary": >
+    Brief overview for the risk committee and senior leadership. Cover the
+    model's business purpose, materiality tier, current performance status
+    against monitoring thresholds, and any open issues or limitations of note.
+    Keep technical jargon to a minimum; this section is read by non-quantitative
+    stakeholders.
+
+  "Model Identification & Inventory": >
+    Capture identification details for the inventory of record: model ID,
+    name, version, owner, business sponsor, asset class, model type, approved
+    uses, restricted uses, frequency of use, last recalibration date, and next
+    required review date. Include downstream dependencies on other models or
+    systems consuming the output.
+
+  "Regulatory Classification": >
+    Document the model's classification under SR 26-2 including the assigned
+    materiality tier and the rationale for that tier. Identify all applicable
+    regulatory frameworks (Basel III capital rules, FRTB where relevant,
+    IFRS 9 / CECL, ECOA / Regulation B for fair lending) and any internal
+    policies. Note examination history and any open regulatory findings.
+
+  "Conceptual Soundness": >
+    Document the theoretical basis of the model, key methodological choices,
+    functional form, and assumptions. Justify methodology selection over
+    alternatives considered. Describe any segmentation, calibration approach,
+    and overlays applied. Reference the development notebook and supporting
+    derivations rather than restating them inline.
+
+  "Data Lineage & Quality": >
+    Document data sources and authoritative systems of record, dataset
+    construction logic, exclusions, train and out-of-time splits, and any
+    input aliases or transformations applied at scoring time. Cover data
+    quality controls (completeness, validity, consistency, timeliness,
+    accuracy) and reconciliation procedures.
+
+  "Independent Validation": >
+    Document the independent validation performed by a function reporting
+    outside the model development chain. Cover effective challenge of
+    conceptual soundness, benchmarking against challenger models or industry
+    standards, outcomes analysis against realized outcomes, and any open or
+    closed validation findings. Cite the validation report ID and date.
+
+  "Ongoing Performance Monitoring": >
+    Report performance metrics from the most recent monitoring cycle. Include
+    discrimination, calibration, and stability statistics with their
+    thresholds and current status (pass, monitor, escalate). Note any drift,
+    threshold breaches, or trends warranting attention. Identify triggers for
+    recalibration or redevelopment.
+
+  "Limitations & Compensating Controls": >
+    Enumerate known model limitations, sensitive assumptions, and conditions
+    under which the model would degrade. For each limitation, document the
+    compensating control or mitigant applied (use restriction, monitoring
+    overlay, segment-specific tightening, etc.) and the owner accountable for
+    that control.
+
+  "Governance & Approvals": >
+    Capture roles and responsibilities (model owner, developer, business
+    sponsor, independent validator, risk committee), validation status,
+    outstanding findings with target remediation dates, and change control
+    procedures. Distinguish material from non-material change handling and
+    the approval path for each.
+
+  "Appendix": >
+    Supporting material: glossary of regulatory and methodological terms,
+    references to source code repositories and registered model artifacts,
+    examination correspondence, and pointers to supplementary documentation
+    not included in the core report.

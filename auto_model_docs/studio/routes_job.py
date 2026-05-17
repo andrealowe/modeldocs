@@ -101,6 +101,22 @@ def register_job_routes(rt):
                 {"error": "Could not prepare the documentation dataset. Try again later."},
                 500,
             )
+
+        # If the user edited the template inline, save the content to the dataset
+        # and repoint spec_path to the saved file so the Domino job can find it.
+        inline_content = (job_request.spec_content or "").strip()
+        if inline_content and (not job_request.spec_path or job_request.spec_path == "__inline__"):
+            try:
+                import time as _time
+                from dataset_manager import DatasetManager
+                _ts = int(_time.time())
+                _fname = f"_inline_spec_{_ts}.yaml"
+                DatasetManager.write_file(ensured["id"], _fname, inline_content.encode("utf-8"))
+                job_request.spec_path = f"{dataset_mount_path.rstrip('/')}/{_fname}"
+            except Exception:
+                logger.exception("Failed to save inline spec content to dataset")
+                return _json({"error": "Could not save the template to the dataset. Try again later."}, 500)
+
         try:
             require_domino_job_start(job_request.project_id)
         except HTTPException as e:
