@@ -73,7 +73,8 @@ class DocumentBuilder:
             section_citations: Dict[str, List[str]] = {}
             for result in results:
                 section_name = result.plan.title or result.plan.name
-                found = self._add_section(doc, result, registry)
+                hint = (spec.hints or {}).get(result.plan.name, "")
+                found = self._add_section(doc, result, registry, hint=hint)
                 if found:
                     section_citations[section_name] = found
 
@@ -98,6 +99,18 @@ class DocumentBuilder:
     _ACCENT_COLOR = RGBColor(0x2E, 0x74, 0xB5)  # medium blue (table headers)
     _MUTED_COLOR = RGBColor(0x59, 0x59, 0x59)   # dark gray (notices)
 
+    # Callout box colors
+    _CALLOUT_FINDINGS_BG = "E8EBF9"      # light lavender-blue
+    _CALLOUT_FINDINGS_BORDER = "1F4E79"  # navy
+    _CALLOUT_FINDINGS_TITLE = RGBColor(0x1F, 0x4E, 0x79)
+    _CALLOUT_ACTIONS_BG = "E2F0E8"       # light green
+    _CALLOUT_ACTIONS_BORDER = "2E7D32"   # dark green
+    _CALLOUT_ACTIONS_TITLE = RGBColor(0x2E, 0x7D, 0x32)
+
+    # Titles that trigger a callout box (normalized to lowercase)
+    _FINDINGS_TITLES = {"key findings", "key finding", "findings", "summary findings"}
+    _ACTIONS_TITLES = {"recommended actions", "recommendations", "action items", "next steps"}
+
     def _shade_cell(self, cell, hex_color: str) -> None:
         """Apply a solid background fill to a table cell."""
         tc = cell._tc
@@ -107,6 +120,92 @@ class DocumentBuilder:
         shd.set(qn("w:color"), "auto")
         shd.set(qn("w:fill"), hex_color)
         tcPr.append(shd)
+
+    def _add_heading_rule(self, heading_para) -> None:
+        """Add a navy bottom border rule to a heading paragraph."""
+        pPr = heading_para._p.get_or_add_pPr()
+        pBdr = OxmlElement("w:pBdr")
+        bottom = OxmlElement("w:bottom")
+        bottom.set(qn("w:val"), "single")
+        bottom.set(qn("w:sz"), "6")       # 0.75 pt
+        bottom.set(qn("w:space"), "1")
+        bottom.set(qn("w:color"), "1F4E79")
+        pBdr.append(bottom)
+        pPr.append(pBdr)
+
+    def _add_callout_box(
+        self,
+        doc: Document,
+        title: str,
+        items: List[str],
+        is_numbered: bool,
+        bg_color: str,
+        border_color: str,
+        title_color: RGBColor,
+    ) -> None:
+        """Render a colored callout box (Key Findings / Recommended Actions style)."""
+        table = doc.add_table(rows=1, cols=1)
+        table.style = "Table Grid"
+        cell = table.rows[0].cells[0]
+
+        # Background fill
+        self._shade_cell(cell, bg_color)
+
+        # Left border thick, other borders none
+        tc = cell._tc
+        tcPr = tc.get_or_add_tcPr()
+        tcBorders = OxmlElement("w:tcBorders")
+        left_bdr = OxmlElement("w:left")
+        left_bdr.set(qn("w:val"), "thick")
+        left_bdr.set(qn("w:sz"), "24")   # 3 pt
+        left_bdr.set(qn("w:space"), "0")
+        left_bdr.set(qn("w:color"), border_color)
+        tcBorders.append(left_bdr)
+        for side in ("top", "right", "bottom", "insideH", "insideV"):
+            bdr = OxmlElement(f"w:{side}")
+            bdr.set(qn("w:val"), "none")
+            bdr.set(qn("w:sz"), "0")
+            bdr.set(qn("w:color"), "auto")
+            tcBorders.append(bdr)
+        tcPr.append(tcBorders)
+
+        # Cell padding
+        tcMar = OxmlElement("w:tcMar")
+        for side, twips in (("top", "72"), ("left", "144"), ("bottom", "72"), ("right", "144")):
+            m = OxmlElement(f"w:{side}")
+            m.set(qn("w:w"), twips)
+            m.set(qn("w:type"), "dxa")
+            tcMar.append(m)
+        tcPr.append(tcMar)
+
+        # Title paragraph (reuse the cell's first paragraph)
+        title_para = cell.paragraphs[0]
+        title_run = title_para.add_run(title.upper())
+        title_run.bold = True
+        title_run.font.size = Pt(9)
+        title_run.font.color.rgb = title_color
+        title_para.paragraph_format.space_after = Pt(4)
+
+        # List items
+        for i, item in enumerate(items):
+            if not (item or "").strip():
+                continue
+            item_para = cell.add_paragraph()
+            if is_numbered:
+                prefix = f"{i + 1}."
+                run = item_para.add_run(f"{prefix}  ")
+                run.bold = True
+                run.font.color.rgb = title_color
+                run.font.size = Pt(10)
+            else:
+                run = item_para.add_run("\u2022  ")
+                run.font.color.rgb = title_color
+                run.font.size = Pt(10)
+            item_para.add_run(item.strip()).font.size = Pt(10)
+            item_para.paragraph_format.space_after = Pt(2)
+            item_para.paragraph_format.left_indent = Pt(6)
+
+        doc.add_paragraph()
 
     def _add_title_page(self, doc: Document, spec: DocumentSpec) -> None:
         """Add title page to the document."""
@@ -438,7 +537,11 @@ class DocumentBuilder:
         return deduped, filtered_details
 
     def _add_section(
-        self, doc: Document, result: SectionResult, registry: CitationRegistry
+        self,
+        doc: Document,
+        result: SectionResult,
+        registry: CitationRegistry,
+        hint: str = "",
     ) -> List[str]:
         """Add a section to the document. Returns collected citation IDs."""
         # Section heading with number and bookmark for TOC linking
@@ -458,6 +561,18 @@ class DocumentBuilder:
             if heading_size:
                 run.font.size = Pt(heading_size)
             run.font.color.rgb = self._BRAND_COLOR
+
+        # Navy underline rule below the heading
+        self._add_heading_rule(heading_para)
+
+        # Optional italic hint subtitle
+        if hint and hint.strip():
+            hint_para = doc.add_paragraph()
+            hint_run = hint_para.add_run(hint.strip())
+            hint_run.italic = True
+            hint_run.font.size = Pt(10)
+            hint_run.font.color.rgb = self._MUTED_COLOR
+            hint_para.paragraph_format.space_after = Pt(10)
 
         section_citation_ids: List[str] = []
         section_citation_details: dict = {}
@@ -693,7 +808,7 @@ class DocumentBuilder:
     def _add_list(
         self, doc: Document, content: GeneratedContent, registry: CitationRegistry
     ) -> None:
-        """Add a list to the document."""
+        """Add a list to the document, using callout box styling for Key Findings etc."""
         # Handle both dict format (with title) and list format (legacy)
         if isinstance(content.content, dict):
             items = content.content.get("items", [])
@@ -705,7 +820,24 @@ class DocumentBuilder:
         if not items:
             return
 
-        # Add title as subheading if provided
+        is_numbered = content.block_type == ContentType.NUMBERED_LIST
+        title_lower = (title or "").strip().lower()
+
+        # Route to callout box for Key Findings / Recommended Actions
+        if title_lower in self._FINDINGS_TITLES:
+            self._add_callout_box(
+                doc, title or "Key Findings", items, is_numbered,
+                self._CALLOUT_FINDINGS_BG, self._CALLOUT_FINDINGS_BORDER, self._CALLOUT_FINDINGS_TITLE,
+            )
+            return
+        if title_lower in self._ACTIONS_TITLES:
+            self._add_callout_box(
+                doc, title or "Recommended Actions", items, is_numbered,
+                self._CALLOUT_ACTIONS_BG, self._CALLOUT_ACTIONS_BORDER, self._CALLOUT_ACTIONS_TITLE,
+            )
+            return
+
+        # Standard list rendering
         if title:
             title_para = doc.add_paragraph()
             self._append_text_with_citations(
@@ -717,12 +849,7 @@ class DocumentBuilder:
             )
             title_para.paragraph_format.space_after = Pt(6)
 
-        # Choose style based on list type
-        style = (
-            "List Bullet"
-            if content.block_type == ContentType.BULLET_LIST
-            else "List Number"
-        )
+        style = "List Bullet" if not is_numbered else "List Number"
 
         for item in items:
             if item and item.strip():
@@ -740,7 +867,6 @@ class DocumentBuilder:
             source_para.add_run("Source: ")
             self._append_citations_only(source_para, content.metadata, registry)
 
-        # Add spacing after list
         doc.add_paragraph()
 
     def _append_text_with_citations(
