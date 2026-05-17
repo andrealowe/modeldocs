@@ -280,6 +280,51 @@ def register_api_routes(rt):
 
     rt("/demo/report-ipynb")(demo_report_ipynb)
 
+    async def demo_report_render(req: Request):
+        """Render the pre-built demo .docx as HTML via mammoth."""
+        p = _UPLOADS_DIR / "NBT-CR-EL-007_Compliance_Report_v7_0.docx"
+        if not p.exists():
+            return Response("Demo file not found", status_code=404)
+        try:
+            import mammoth
+            with open(p, "rb") as f:
+                result = mammoth.convert_to_html(f)
+            body_html = result.value
+        except Exception as exc:
+            return Response(f"Could not render document: {exc}", status_code=500, media_type="text/plain")
+
+        html = f"""<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 860px; margin: 2rem auto; padding: 0 1.5rem 3rem; color: #1a1a1a; line-height: 1.65; font-size: 14px; font-weight: normal; }}
+  h1, h2, h3 {{ font-family: inherit; color: #1F4E79; font-weight: 700; }}
+  h1 {{ font-size: 1.35rem; border-bottom: 2px solid #1F4E79; padding-bottom: .4rem; margin-top: 2rem; }}
+  h2 {{ font-size: 1.1rem; margin-top: 1.5rem; color: #2E74B5; }}
+  h3 {{ font-size: 1rem; margin-top: 1.2rem; }}
+  p {{ margin: .5rem 0 .9rem; font-weight: normal; color: #1a1a1a; }}
+  p strong, p b, p span {{ font-weight: normal !important; color: #1a1a1a !important; }}
+  td p strong, td p b, th p strong, th p b {{ font-weight: 600 !important; color: inherit !important; }}
+  em, i {{ font-style: italic; font-weight: normal; color: #555; }}
+  table {{ border-collapse: collapse; width: 100%; margin: 1rem 0; font-size: .875rem; }}
+  th {{ background: #1F4E79; color: #fff; font-weight: 600; padding: .4rem .7rem; text-align: left; }}
+  td {{ border: 1px solid #ddd; padding: .4rem .7rem; color: #1a1a1a; }}
+  tr:nth-child(even) td {{ background: #f7f8fc; }}
+  ul, ol {{ margin: .4rem 0 .8rem 1.2rem; padding: 0; }}
+  li {{ margin-bottom: .3rem; font-weight: normal; }}
+  li strong, li b {{ font-weight: normal !important; color: #1a1a1a !important; }}
+  img {{ max-width: 100%; display: block; margin: 1rem auto; }}
+</style>
+</head>
+<body>
+{body_html}
+</body>
+</html>"""
+        return Response(html, media_type="text/html")
+
+    rt("/demo/report-render")(demo_report_render)
+
     async def job_render(req: Request):
         """Convert the most recently generated .docx in a dataset to HTML for in-app display."""
         dataset_path = req.query_params.get("dataset_path", "").strip()

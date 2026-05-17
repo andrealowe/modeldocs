@@ -4,6 +4,8 @@ from __future__ import annotations
 
 
 MAIN_DOM_JS = r"""
+    var DEMO_MODE = __DEMO_MODE__;
+
     // ── Shared fetch helper: check response status before parsing ──
     function _checkResp(r) {
         if (!r.ok) throw new Error('Server error (' + r.status + ')');
@@ -852,9 +854,12 @@ MAIN_DOM_JS = r"""
             var modal = document.getElementById('doc-viewer-modal');
             var frame = document.getElementById('doc-viewer-frame');
             if (!modal || !frame) return;
+            var isDemo = (datasetPath === '__demo__');
             if (type === 'ipynb') {
                 var a = document.createElement('a');
-                a.href = _adUrl('job-notebook') + '?dataset_path=' + encodeURIComponent(datasetPath);
+                a.href = isDemo
+                    ? _adUrl('demo/report-ipynb')
+                    : _adUrl('job-notebook') + '?dataset_path=' + encodeURIComponent(datasetPath);
                 a.download = '';
                 document.body.appendChild(a);
                 a.click();
@@ -863,7 +868,9 @@ MAIN_DOM_JS = r"""
             }
             _viewerDatasetPath = datasetPath;
             _setViewerMode('view');
-            frame.src = _adUrl('job-render') + '?dataset_path=' + encodeURIComponent(datasetPath);
+            frame.src = isDemo
+                ? _adUrl('demo/report-render')
+                : _adUrl('job-render') + '?dataset_path=' + encodeURIComponent(datasetPath);
             modal.style.display = 'flex';
             document.body.style.overflow = 'hidden';
         }
@@ -1093,6 +1100,27 @@ MAIN_DOM_JS = r"""
                 setRunMessage('', false);
                 if (submitBtn) submitBtn.disabled = true;
 
+                // ── Demo mode: simulate a job run without hitting /run ──────
+                if (DEMO_MODE) {
+                    var _demoSubmittedAt = new Date().toISOString();
+                    renderJobHistory([{
+                        status: 'running',
+                        submitted_at: _demoSubmittedAt,
+                        dataset_path: null,
+                        domino_run_id: 'demo',
+                    }], '');
+                    setTimeout(function() {
+                        renderJobHistory([{
+                            status: 'succeeded',
+                            submitted_at: _demoSubmittedAt,
+                            dataset_path: '__demo__',
+                            domino_run_id: 'demo',
+                        }], '');
+                        if (submitBtn) submitBtn.disabled = false;
+                    }, 15000);
+                    return;
+                }
+
                 fetch(_adUrl('run') + qs, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -1123,6 +1151,11 @@ MAIN_DOM_JS = r"""
     });
 """
 
+import os
+
 from dataset_manager import AUTODOC_DATASET_NAME
 
 MAIN_DOM_JS = MAIN_DOM_JS.replace("__AUTODOC_DATASET_NAME__", AUTODOC_DATASET_NAME)
+
+_demo_mode = os.environ.get("MODELDOCS_DEMO_MODE", "true").lower() in ("1", "true", "yes")
+MAIN_DOM_JS = MAIN_DOM_JS.replace("__DEMO_MODE__", "true" if _demo_mode else "false")
