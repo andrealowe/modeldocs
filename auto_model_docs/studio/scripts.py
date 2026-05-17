@@ -451,7 +451,7 @@ MAIN_DOM_JS = r"""
                     }
                     console.log('[spec-browser] Found ' + files.length + ' items at path:', path || '(root)');
                     if (files.length === 0) {
-                        var emptyMsg = 'No YAML files found in this location';
+                        var emptyMsg = 'No files found in this location';
                         var pPath = specParentPath(path);
                         if (pPath !== null) {
                             var up = '<div class="spec-file-item spec-file-parent" data-path="' + pPath + '" data-dir="true" data-name=".." data-parent="true">'
