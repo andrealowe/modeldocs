@@ -1886,11 +1886,11 @@ select.hw-tier-select option {
 
 /* ── Model context banner ─────────────────────────────────────────── */
 .model-context-banner {
-    background: #E5F6F8;
-    border: 1.5px solid #17A2B8;
-    border-left: 4px solid #17A2B8;
-    border-radius: 8px;
-    padding: 12px 16px;
+    background: #EDECFB;
+    border: 1px solid #C9C5F2;
+    border-left: 3px solid #3B3BD3;
+    border-radius: 6px;
+    padding: 10px 14px;
     margin-bottom: 16px;
 }
 .model-banner-inner {
@@ -1899,8 +1899,8 @@ select.hw-tier-select option {
     gap: 12px;
 }
 .model-banner-icon {
-    font-size: 20px;
-    color: #17A2B8;
+    font-size: 18px;
+    color: #3B3BD3;
     flex-shrink: 0;
 }
 .model-banner-text {
@@ -1911,7 +1911,7 @@ select.hw-tier-select option {
     font-size: 10px;
     font-weight: 700;
     letter-spacing: 0.08em;
-    color: #0D6B7A !important;
+    color: #1820A0 !important;
     text-transform: uppercase;
     color: var(--on-primary-container);
     opacity: 0.7;
@@ -1925,14 +1925,14 @@ select.hw-tier-select option {
     flex-wrap: wrap;
 }
 .model-banner-name {
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 600;
-    color: #0D6B7A;
+    color: #3F4547;
 }
 .model-banner-version {
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 500;
-    color: #17A2B8;
+    color: #1820A0;
     background: var(--primary-fixed-dim);
     border-radius: 4px;
     padding: 1px 6px;
