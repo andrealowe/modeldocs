@@ -830,9 +830,12 @@ MAIN_DOM_JS = r"""
             var linkCell = j.job_url
                 ? '<td><a href="' + _esc(j.job_url) + '" target="_blank" rel="noopener noreferrer">View →</a></td>'
                 : '<td>—</td>';
-            var docCell = (documentUrl && statusKey === 'succeeded')
-                ? '<td><a href="' + _esc(documentUrl) + '" target="_blank" rel="noopener noreferrer">View →</a></td>'
-                : '<td>—</td>';
+            var docCell = '<td>—</td>';
+            if (statusKey === 'succeeded' && j.dataset_path) {
+                docCell = '<td><button class="job-view-btn" data-dataset="' + _esc(j.dataset_path) + '">View</button></td>';
+            } else if (statusKey === 'succeeded' && documentUrl) {
+                docCell = '<td><a href="' + _esc(documentUrl) + '" target="_blank" rel="noopener noreferrer">View →</a></td>';
+            }
             return '<tr>'
                 + '<td title="' + _esc(tier) + '">' + _esc(tier) + '</td>'
                 + '<td><span class="' + statusCls + '">' + _esc(statusKey.toUpperCase()) + '</span></td>'
@@ -841,6 +844,32 @@ MAIN_DOM_JS = r"""
                 + docCell
                 + '</tr>';
         }
+
+        function openDocViewer(datasetPath) {
+            var modal = document.getElementById('doc-viewer-modal');
+            var frame = document.getElementById('doc-viewer-frame');
+            if (!modal || !frame) return;
+            frame.src = _adUrl('job-render') + '?dataset_path=' + encodeURIComponent(datasetPath);
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeDocViewer() {
+            var modal = document.getElementById('doc-viewer-modal');
+            var frame = document.getElementById('doc-viewer-frame');
+            if (modal) { modal.style.display = 'none'; document.body.style.overflow = ''; }
+            if (frame) { frame.src = 'about:blank'; }
+        }
+
+        document.addEventListener('click', function(e) {
+            var btn = e.target.closest('.job-view-btn');
+            if (btn) { e.preventDefault(); openDocViewer(btn.dataset.dataset); }
+            if (e.target.id === 'doc-viewer-close' || e.target.id === 'doc-viewer-modal') { closeDocViewer(); }
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeDocViewer();
+        });
 
         function _maxJobsWarning(jobs) {
             var hasQueued = jobs.some(function(j) { return j.status === 'queued' && !j.domino_run_id; });

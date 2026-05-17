@@ -134,6 +134,7 @@ def register_job_routes(rt):
             job_url=job_url,
             hardware_tier=(job_request.hardware_tier or "").strip(),
             spec_path=(job_request.spec_path or "").strip(),
+            dataset_path=dataset_mount_path,
         )
         return _json({"ok": True}, 200)
 

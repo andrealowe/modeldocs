@@ -241,14 +241,23 @@ def _build_job_command_str(req: JobRequest, spec_path: str, dataset_path: str = 
 # ---------------------------------------------------------------------------
 
 async def _drain_process(proc: asyncio.subprocess.Process) -> None:
-    """Wait for the subprocess to finish and log its output."""
+    """Wait for the subprocess to finish, log output, and update job status in DB."""
+    pid_str = str(proc.pid)
     try:
         stdout, _ = await proc.communicate()
         if stdout:
             logger.info("Job output:\n%s", stdout.decode(errors="replace"))
-        logger.info("Job process (pid=%d) exited with code %d", proc.pid, proc.returncode)
+        succeeded = proc.returncode == 0
+        logger.info("Job process (pid=%s) exited with code %d", pid_str, proc.returncode)
+        status = "succeeded" if succeeded else "failed"
     except Exception:
         logger.exception("Error draining job process output")
+        status = "failed"
+    try:
+        import domino_job_store
+        domino_job_store.update_job_status(pid_str, status)
+    except Exception:
+        logger.warning("Could not update job status in DB for pid %s", pid_str)
 
 
 async def _submit_local_job(req: JobRequest, dataset_mount_path: str) -> tuple[str, str]:

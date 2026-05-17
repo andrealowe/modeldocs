@@ -280,6 +280,56 @@ def register_api_routes(rt):
 
     rt("/demo/report-ipynb")(demo_report_ipynb)
 
+    async def job_render(req: Request):
+        """Convert the most recently generated .docx in a dataset to HTML for in-app display."""
+        dataset_path = req.query_params.get("dataset_path", "").strip()
+        if not dataset_path:
+            return Response("dataset_path is required", status_code=400)
+
+        docs_dir = Path(dataset_path) / "docs"
+        if not docs_dir.exists():
+            return Response("No documents found yet.", status_code=404, media_type="text/plain")
+
+        docx_files = sorted(docs_dir.glob("*.docx"), key=lambda p: p.stat().st_mtime, reverse=True)
+        if not docx_files:
+            return Response("No documents found yet.", status_code=404, media_type="text/plain")
+
+        docx_path = docx_files[0]
+        try:
+            import mammoth
+            with open(docx_path, "rb") as f:
+                result = mammoth.convert_to_html(f)
+            body_html = result.value
+        except Exception as exc:
+            logger.exception("mammoth conversion failed for %s", docx_path)
+            return Response(f"Could not render document: {exc}", status_code=500, media_type="text/plain")
+
+        html = f"""<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  body {{ font-family: Georgia, serif; max-width: 860px; margin: 2rem auto; padding: 0 1.5rem; color: #1a1a1a; line-height: 1.7; }}
+  h1, h2, h3 {{ font-family: system-ui, sans-serif; color: #111; }}
+  h1 {{ font-size: 1.6rem; border-bottom: 2px solid #ddd; padding-bottom: .5rem; }}
+  h2 {{ font-size: 1.25rem; margin-top: 2rem; }}
+  h3 {{ font-size: 1.05rem; }}
+  table {{ border-collapse: collapse; width: 100%; margin: 1rem 0; font-size: .9rem; }}
+  th, td {{ border: 1px solid #ccc; padding: .4rem .7rem; text-align: left; }}
+  th {{ background: #f4f4f4; font-weight: 600; }}
+  p {{ margin: .6rem 0; }}
+  img {{ max-width: 100%; }}
+</style>
+</head>
+<body>
+{body_html}
+</body>
+</html>"""
+
+        return Response(html, media_type="text/html")
+
+    rt("/job-render")(job_render)
+
     async def api_code_root_options(req: Request):
         pid = (_resolve_request_project_id(req) or "").strip()
 

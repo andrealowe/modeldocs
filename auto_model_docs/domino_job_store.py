@@ -58,10 +58,16 @@ def _ensure_schema(conn: sqlite3.Connection) -> None:
             branch TEXT,
             hardware_tier TEXT,
             spec_path TEXT,
+            dataset_path TEXT,
             submitted_at TEXT NOT NULL
         )
         """
     )
+    # Add dataset_path column to existing databases that predate this schema
+    try:
+        conn.execute("ALTER TABLE studio_jobs ADD COLUMN dataset_path TEXT")
+    except sqlite3.OperationalError:
+        pass  # Column already exists
     conn.execute(
         """
         CREATE INDEX IF NOT EXISTS idx_studio_jobs_owner_project
@@ -100,6 +106,11 @@ def _domino_client():
     return domino_client
 
 
+def _is_local_pid(run_id: str) -> bool:
+    """Local jobs use the process PID (a plain integer string) as their run ID."""
+    return (run_id or "").strip().isdigit()
+
+
 def _refresh_active_rows(conn: sqlite3.Connection, project_id: str, owner_id: str) -> None:
     client = _domino_client()
     cur = conn.execute(
@@ -113,6 +124,9 @@ def _refresh_active_rows(conn: sqlite3.Connection, project_id: str, owner_id: st
     for row in rows:
         st = (row["status"] or "").strip().lower()
         if st not in _ACTIVE_REFRESH_STATUSES:
+            continue
+        # Local subprocess jobs are tracked in-process; skip Domino API call
+        if _is_local_pid(row["domino_run_id"]):
             continue
         info = client.get_job_status(row["domino_run_id"])
         local = (info.get("local_status") or "submitted").strip().lower()
@@ -130,6 +144,7 @@ def record_job(
     job_url: str,
     hardware_tier: str,
     spec_path: str,
+    dataset_path: str = "",
     status: str = "submitted",
 ) -> None:
     if not owner_id or not project_id or not domino_run_id:
@@ -149,8 +164,8 @@ def record_job(
                 """
                 INSERT INTO studio_jobs (
                     owner_id, project_id, domino_run_id, job_url, status,
-                    branch, hardware_tier, spec_path, submitted_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    branch, hardware_tier, spec_path, dataset_path, submitted_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     owner_id,
@@ -161,6 +176,7 @@ def record_job(
                     "",
                     hardware_tier or "",
                     spec_path or "",
+                    dataset_path or "",
                     submitted_at,
                 ),
             )
@@ -168,6 +184,27 @@ def record_job(
             conn.close()
     except Exception:
         logger.exception("record_job failed for project %s", project_id)
+
+
+def update_job_status(domino_run_id: str, status: str) -> None:
+    """Update the status of a job by its run ID (used for local subprocess jobs)."""
+    if not domino_run_id:
+        return
+    db_file = _db_path()
+    if db_file is None:
+        return
+    try:
+        conn = _connect(db_file)
+        try:
+            _ensure_schema(conn)
+            conn.execute(
+                "UPDATE studio_jobs SET status = ? WHERE domino_run_id = ?",
+                ((status or "submitted").strip().lower(), domino_run_id),
+            )
+        finally:
+            conn.close()
+    except Exception:
+        logger.exception("update_job_status failed for run %s", domino_run_id)
 
 
 def get_user_jobs(project_id: str, owner_id: str, limit: int = 50) -> list[dict[str, Any]]:
@@ -191,7 +228,7 @@ def get_user_jobs(project_id: str, owner_id: str, limit: int = 50) -> list[dict[
             cur = conn.execute(
                 """
                 SELECT id, domino_run_id, job_url, status, hardware_tier,
-                       spec_path, submitted_at
+                       spec_path, dataset_path, submitted_at
                 FROM studio_jobs
                 WHERE owner_id = ? AND project_id = ?
                 ORDER BY submitted_at DESC
@@ -211,6 +248,7 @@ def get_user_jobs(project_id: str, owner_id: str, limit: int = 50) -> list[dict[
                         "status": st,
                         "hardware_tier": row["hardware_tier"] or "",
                         "spec_path": row["spec_path"] or "",
+                        "dataset_path": row["dataset_path"] or "",
                         "submitted_at": row["submitted_at"] or "",
                     }
                 )

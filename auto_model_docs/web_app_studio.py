@@ -888,6 +888,21 @@ async def index(req: Request):
                 enctype="multipart/form-data",
             ),
             advanced_modal,
+            # Document viewer modal
+            Div(
+                Div(
+                    Div(
+                        Span("Generated Document", cls="doc-viewer-title"),
+                        Button("✕", id="doc-viewer-close", cls="doc-viewer-close", type="button"),
+                        cls="doc-viewer-header",
+                    ),
+                    Iframe(id="doc-viewer-frame", src="about:blank", cls="doc-viewer-iframe"),
+                    cls="doc-viewer-inner",
+                ),
+                id="doc-viewer-modal",
+                cls="doc-viewer-modal",
+                style="display:none;",
+            ),
             # Template editor + format selector JS
             Script(_TEMPLATE_EDITOR_JS),
             cls="page",

@@ -2164,4 +2164,68 @@ select.hw-tier-select option {
 .advanced-filters-heading {
     margin-bottom: 8px;
 }
+
+/* ── Job View button ──────────────────────────────────────────────── */
+.job-view-btn {
+    background: var(--primary);
+    color: var(--on-primary);
+    border: none;
+    border-radius: 4px;
+    padding: 3px 10px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+}
+.job-view-btn:hover { opacity: 0.85; }
+
+/* ── Document viewer modal ────────────────────────────────────────── */
+.doc-viewer-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.doc-viewer-inner {
+    background: #fff;
+    border-radius: 8px;
+    width: 90vw;
+    height: 88vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.3);
+}
+.doc-viewer-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-bottom: 1px solid #e0e0e0;
+    background: #f7f7f7;
+    flex-shrink: 0;
+}
+.doc-viewer-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #222;
+}
+.doc-viewer-close {
+    background: none;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    color: #555;
+    line-height: 1;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+.doc-viewer-close:hover { background: #e8e8e8; }
+.doc-viewer-iframe {
+    flex: 1;
+    border: none;
+    width: 100%;
+}
 """
