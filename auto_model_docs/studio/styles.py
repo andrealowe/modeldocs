@@ -2207,6 +2207,17 @@ select.hw-tier-select option {
     cursor: pointer;
 }
 .job-view-btn:hover { opacity: 0.85; }
+.job-view-btn--secondary {
+    background: transparent;
+    color: var(--primary);
+    border: 1.5px solid var(--primary);
+    margin-left: 4px;
+}
+.job-view-btn--secondary:hover { background: color-mix(in srgb, var(--primary) 10%, transparent); opacity: 1; }
+.job-view-btn--secondary[disabled] {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
 
 /* ── Document viewer modal ────────────────────────────────────────── */
 .doc-viewer-modal {
