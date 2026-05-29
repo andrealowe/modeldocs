@@ -336,8 +336,8 @@ def register_api_routes(rt):
 
     # ── Demo output files — served from uploads/ for preview/demo mode ───
 
-    _DEMO_DOCX = _DEMO_DIR / "NBT-CR-EL-007_Compliance_Report_v7_0.docx"
-    _DEMO_IPYNB = _DEMO_DIR / "NBT-CR-EL-007_Compliance_Report.ipynb"
+    _DEMO_DOCX = _DEMO_DIR / "SBD-OBJ-VIT-2025-001_Compliance_Report_v1_0.docx"
+    _DEMO_IPYNB = _DEMO_DIR / "SBD-OBJ-VIT-2025-001_Compliance_Report.ipynb"
     logger.info("Demo files: docx=%s (exists=%s)  ipynb=%s (exists=%s)",
                 _DEMO_DOCX, _DEMO_DOCX.exists(), _DEMO_IPYNB, _DEMO_IPYNB.exists())
 

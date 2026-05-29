@@ -1,0 +1,49 @@
+# .modelignore - Exclude files from Model API Docker image
+# Only predict.py and vit_classification_model/ are needed for API inference
+
+# Notebooks (training/development only)
+01_create_dataset.ipynb
+02_model_development.ipynb
+*.ipynb
+
+# Streamlit app (separate deployment)
+streamlit-app.py
+app.sh
+requirements-app.txt
+
+# Documentation
+*.md
+Model-Card-Template.md
+
+# Monitoring scripts (run separately as jobs)
+monitoring/
+
+# Launcher scripts (separate deployment)
+launcher_scripts/
+
+# ETL scripts and flows (data preprocessing only)
+ETL-scripts/
+flow.py
+flow_v2.py
+
+# Results and outputs
+results/
+
+# IDE and version control
+.ipynb_checkpoints/
+__pycache__/
+.claude/
+.Trash-*/
+.git/
+.gitignore
+
+# Domino project files (not needed in container)
+.dominoignore
+.dominoresults
+.domino/
+
+# Session summaries
+SESSION_SUMMARY_*.md
+NEXT_SESSION_TASKS.md
+CLEANUP_SUMMARY.md
+PROJECT_REORGANIZATION_PLAN.md

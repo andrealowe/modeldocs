@@ -176,9 +176,9 @@ _TEMPLATE_EDITOR_JS = r"""
             +   '<span class="history-status history-status-succeeded">COMPLETED</span>'
             +   '<span class="demo-output-time">Generated just now</span>'
             + '</div>'
-            + '<div class="demo-output-title">NBT-CR-EL-007 Compliance Report</div>'
-            + '<div class="demo-output-subtitle">Expected Loss Model \u2014 Residential Mortgage Portfolio</div>'
-            + '<div class="demo-output-meta">10\u00a0sections\u00a0\u00b7\u00a014\u00a0pages\u00a0\u00b7\u00a03\u00a0context sources</div>'
+            + '<div class="demo-output-title">SBD-OBJ-VIT-2025-001 Compliance Report</div>'
+            + '<div class="demo-output-subtitle">Seabed Object Classifier \u2014 Vision Transformer (ViT) v1.0</div>'
+            + '<div class="demo-output-meta">10\u00a0sections\u00a0\u00b7\u00a0NIST\u00a0AI\u00a0RMF\u00a0\u00b7\u00a04\u00a0figures\u00a0\u00b7\u00a03\u00a0context sources</div>'
             + '<div class="demo-output-files">'
             +   '<a href="' + docxUrl + '" class="demo-file-btn" download>'
             +     '<span class="fa-icon fa-file-word demo-file-icon"></span>'
@@ -1065,9 +1065,9 @@ def _ensure_demo_files() -> None:
     from pathlib import Path
     _log = logging.getLogger(__name__)
     demo_dir = Path(__file__).resolve().parent / "studio" / "demo"
-    docx = demo_dir / "NBT-CR-EL-007_Compliance_Report_v7_0.docx"
-    ipynb_src = Path(__file__).resolve().parent.parent / "uploads" / "NBT-CR-EL-007_Compliance_Report.ipynb"
-    ipynb_dst = demo_dir / "NBT-CR-EL-007_Compliance_Report.ipynb"
+    docx = demo_dir / "SBD-OBJ-VIT-2025-001_Compliance_Report_v1_0.docx"
+    ipynb_src = Path(__file__).resolve().parent.parent / "uploads" / "SBD-OBJ-VIT-2025-001_Compliance_Report.ipynb"
+    ipynb_dst = demo_dir / "SBD-OBJ-VIT-2025-001_Compliance_Report.ipynb"
 
     demo_dir.mkdir(parents=True, exist_ok=True)
 
@@ -1078,7 +1078,7 @@ def _ensure_demo_files() -> None:
             from build_demo_report import build
             build()
             import shutil
-            generated = Path(__file__).resolve().parent.parent / "uploads" / "NBT-CR-EL-007_Compliance_Report_v7_0.docx"
+            generated = Path(__file__).resolve().parent.parent / "uploads" / "SBD-OBJ-VIT-2025-001_Compliance_Report_v1_0.docx"
             if generated.exists():
                 shutil.copy2(generated, docx)
                 _log.info("Demo docx generated and copied to %s", docx)

@@ -1,0 +1,109 @@
+[I 2025-10-07 16:43:20.474 ServerApp] jupyter_ai | extension was successfully linked.
+[I 2025-10-07 16:43:20.474 ServerApp] jupyter_lsp | extension was successfully linked.
+[I 2025-10-07 16:43:20.477 ServerApp] jupyter_server_mathjax | extension was successfully linked.
+[I 2025-10-07 16:43:20.477 ServerApp] jupyter_server_proxy | extension was successfully linked.
+[I 2025-10-07 16:43:20.480 ServerApp] jupyter_server_terminals | extension was successfully linked.
+[I 2025-10-07 16:43:20.483 ServerApp] jupyterlab | extension was successfully linked.
+[I 2025-10-07 16:43:20.483 ServerApp] jupyterlab_git | extension was successfully linked.
+[I 2025-10-07 16:43:20.486 ServerApp] nbclassic | extension was successfully linked.
+[I 2025-10-07 16:43:20.486 ServerApp] nbdime | extension was successfully linked.
+[I 2025-10-07 16:43:20.489 ServerApp] Writing Jupyter server cookie secret to /home/ubuntu/.local/share/jupyter/runtime/jupyter_cookie_secret
+[I 2025-10-07 16:43:20.492 ServerApp] notebook_shim | extension was successfully linked.
+/opt/conda/lib/python3.10/site-packages/traitlets/traitlets.py:1897: FutureWarning: ServerApp.preferred_dir config is deprecated in jupyter-server 2.0. Use FileContentsManager.preferred_dir instead
+  return t.cast(Sentinel, self._get_trait_default_generator(names[0])(self))
+[W 2025-10-07 16:43:20.582 ServerApp] All authentication is disabled.  Anyone who can connect to this server will be able to run code.
+[I 2025-10-07 16:43:20.583 ServerApp] notebook_shim | extension was successfully loaded.
+[I 2025-10-07 16:43:20.583 AiExtension] Configured provider allowlist: None
+[I 2025-10-07 16:43:20.583 AiExtension] Configured provider blocklist: None
+[I 2025-10-07 16:43:20.583 AiExtension] Configured model allowlist: None
+[I 2025-10-07 16:43:20.583 AiExtension] Configured model blocklist: None
+[I 2025-10-07 16:43:20.583 AiExtension] Configured model parameters: {}
+[I 2025-10-07 16:43:20.603 AiExtension] Registered model provider `ai21`.
+[I 2025-10-07 16:43:20.743 AiExtension] Registered model provider `bedrock`.
+[I 2025-10-07 16:43:20.744 AiExtension] Registered model provider `bedrock-chat`.
+[I 2025-10-07 16:43:20.744 AiExtension] Registered model provider `bedrock-custom`.
+[I 2025-10-07 16:43:21.118 AiExtension] Registered model provider `anthropic-chat`.
+[I 2025-10-07 16:43:21.536 AiExtension] Registered model provider `azure-chat-openai`.
+[I 2025-10-07 16:43:22.221 AiExtension] Registered model provider `cohere`.
+[I 2025-10-07 16:43:22.564 AiExtension] Registered model provider `gemini`.
+[I 2025-10-07 16:43:22.564 AiExtension] Registered model provider `gpt4all`.
+[I 2025-10-07 16:43:22.564 AiExtension] Registered model provider `huggingface_hub`.
+[I 2025-10-07 16:43:22.581 AiExtension] Registered model provider `mistralai`.
+[I 2025-10-07 16:43:22.600 AiExtension] Registered model provider `nvidia-chat`.
+[I 2025-10-07 16:43:22.855 AiExtension] Registered model provider `ollama`.
+[I 2025-10-07 16:43:22.855 AiExtension] Registered model provider `openai`.
+[I 2025-10-07 16:43:22.855 AiExtension] Registered model provider `openai-chat`.
+[I 2025-10-07 16:43:22.855 AiExtension] Registered model provider `openai-chat-custom`.
+[I 2025-10-07 16:43:22.867 AiExtension] Registered model provider `openrouter`.
+[I 2025-10-07 16:43:22.867 AiExtension] Registered model provider `qianfan`.
+[I 2025-10-07 16:43:22.867 AiExtension] Registered model provider `sagemaker-endpoint`.
+[I 2025-10-07 16:43:22.867 AiExtension] Registered model provider `togetherai`.
+[I 2025-10-07 16:43:22.887 AiExtension] Registered embeddings model provider `azure`.
+[I 2025-10-07 16:43:22.887 AiExtension] Registered embeddings model provider `bedrock`.
+[I 2025-10-07 16:43:22.887 AiExtension] Registered embeddings model provider `cohere`.
+[I 2025-10-07 16:43:22.887 AiExtension] Registered embeddings model provider `gpt4all`.
+[I 2025-10-07 16:43:22.887 AiExtension] Registered embeddings model provider `huggingface_hub`.
+[I 2025-10-07 16:43:22.887 AiExtension] Registered embeddings model provider `mistralai`.
+[I 2025-10-07 16:43:22.887 AiExtension] Registered embeddings model provider `ollama`.
+[I 2025-10-07 16:43:22.887 AiExtension] Registered embeddings model provider `openai`.
+[I 2025-10-07 16:43:22.887 AiExtension] Registered embeddings model provider `openai-custom`.
+[I 2025-10-07 16:43:22.887 AiExtension] Registered embeddings model provider `qianfan`.
+[I 2025-10-07 16:43:22.895 AiExtension] Registered providers.
+[I 2025-10-07 16:43:22.895 AiExtension] Registered jupyter_ai server extension
+[I 2025-10-07 16:43:22.917 AiExtension] Registered chat handler `ask` with command `/ask`.
+[I 2025-10-07 16:43:22.917 AiExtension] Registered chat handler `clear` with command `/clear`.
+[I 2025-10-07 16:43:22.918 AiExtension] Registered chat handler `default` with command `default`.
+[I 2025-10-07 16:43:22.918 AiExtension] Registered chat handler `export` with command `/export`.
+[I 2025-10-07 16:43:22.918 AiExtension] Registered chat handler `fix` with command `/fix`.
+[I 2025-10-07 16:43:22.918 AiExtension] Registered chat handler `generate` with command `/generate`.
+[I 2025-10-07 16:43:22.918 AiExtension] Registered chat handler `help` with command `/help`.
+[I 2025-10-07 16:43:22.919 AiExtension] Registered chat handler `learn` with command `/learn`.
+[I 2025-10-07 16:43:22.939 AiExtension] Registered context provider `file`.
+[I 2025-10-07 16:43:22.940 AiExtension] Initialized Jupyter AI server extension in 2357 ms.
+[I 2025-10-07 16:43:22.941 ServerApp] jupyter_ai | extension was successfully loaded.
+[I 2025-10-07 16:43:22.943 ServerApp] jupyter_lsp | extension was successfully loaded.
+[I 2025-10-07 16:43:22.944 ServerApp] jupyter_server_mathjax | extension was successfully loaded.
+[I 2025-10-07 16:43:22.964 ServerApp] jupyter_server_proxy | extension was successfully loaded.
+[I 2025-10-07 16:43:22.965 ServerApp] jupyter_server_terminals | extension was successfully loaded.
+[I 2025-10-07 16:43:22.967 LabApp] JupyterLab extension loaded from /opt/conda/lib/python3.10/site-packages/jupyterlab
+[I 2025-10-07 16:43:22.968 LabApp] JupyterLab application directory is /opt/conda/share/jupyter/lab
+[I 2025-10-07 16:43:22.968 LabApp] Extension Manager is 'pypi'.
+[I 2025-10-07 16:43:22.978 ServerApp] jupyterlab | extension was successfully loaded.
+[I 2025-10-07 16:43:22.985 ServerApp] jupyterlab_git | extension was successfully loaded.
+[I 2025-10-07 16:43:22.994 ServerApp] nbclassic | extension was successfully loaded.
+[I 2025-10-07 16:43:23.075 ServerApp] nbdime | extension was successfully loaded.
+[I 2025-10-07 16:43:23.076 ServerApp] Serving notebooks from local directory: /
+[I 2025-10-07 16:43:23.076 ServerApp] Jupyter Server 2.16.0 is running at:
+[I 2025-10-07 16:43:23.076 ServerApp] http://run-68e542f5b9a81b1bf211364a-5xgmj:8888/andrea_lowe/Seabed-Object-Detection/notebookSession/68e542f5b9a81b1bf211364a/lab/tree/mnt
+[I 2025-10-07 16:43:23.076 ServerApp]     http://127.0.0.1:8888/andrea_lowe/Seabed-Object-Detection/notebookSession/68e542f5b9a81b1bf211364a/lab/tree/mnt
+[I 2025-10-07 16:43:23.076 ServerApp] Use Control-C to stop this server and shut down all kernels (twice to skip confirmation).
+[I 2025-10-07 16:43:23.611 ServerApp] Skipped non-installed server(s): bash-language-server, dockerfile-language-server-nodejs, javascript-typescript-langserver, jedi-language-server, julia-language-server, pyright, python-language-server, python-lsp-server, r-languageserver, sql-language-server, texlab, typescript-language-server, unified-language-server, vscode-css-languageserver-bin, vscode-html-languageserver-bin, vscode-json-languageserver-bin, yaml-language-server
+[W 2025-10-07 16:43:31.180 LabApp] Could not determine jupyterlab build status without nodejs
+[I 2025-10-07 16:43:31.600 ServerApp] Client connected. ID: d47511cc7f714a61871a36b602429608
+[I 2025-10-07 16:43:57.650 ServerApp] New terminal with automatic name: 1
+[I 2025-10-07 16:48:31.600 ServerApp] Client disconnected. ID: d47511cc7f714a61871a36b602429608
+[I 2025-10-07 16:48:33.664 ServerApp] Client connected. ID: 8b5ad941db1844618bd4b553dbb09dee
+[I 2025-10-07 16:53:33.663 ServerApp] Client disconnected. ID: 8b5ad941db1844618bd4b553dbb09dee
+[I 2025-10-07 16:53:34.925 ServerApp] Client connected. ID: 64d6e01efd6144298c39874093d493bb
+[I 2025-10-07 16:54:02.880 ServerApp] Client disconnected. ID: 64d6e01efd6144298c39874093d493bb
+[I 2025-10-07 16:54:04.137 ServerApp] Client connected. ID: 8a22692d0d4c436faf04c81342f359a4
+[I 2025-10-07 16:59:04.136 ServerApp] Client disconnected. ID: 8a22692d0d4c436faf04c81342f359a4
+[I 2025-10-07 16:59:05.435 ServerApp] Client connected. ID: d639ad7b9d3a42e496d744229c2bfcb1
+[I 2025-10-07 17:04:05.434 ServerApp] Client disconnected. ID: d639ad7b9d3a42e496d744229c2bfcb1
+[I 2025-10-07 17:04:06.689 ServerApp] Client connected. ID: 7a70ea6f18374ccb8e1e53e6e5364706
+[I 2025-10-07 17:09:06.688 ServerApp] Client disconnected. ID: 7a70ea6f18374ccb8e1e53e6e5364706
+[I 2025-10-07 17:09:08.655 ServerApp] Client connected. ID: 128d78e9fcbd46299d95d4a183d0fc6b
+[I 2025-10-07 17:14:08.654 ServerApp] Client disconnected. ID: 128d78e9fcbd46299d95d4a183d0fc6b
+[I 2025-10-07 17:14:10.788 ServerApp] Client connected. ID: c052f5ac62794a7b9e6fb00cfa67dec9
+[I 2025-10-07 17:19:10.788 ServerApp] Client disconnected. ID: c052f5ac62794a7b9e6fb00cfa67dec9
+[I 2025-10-07 17:19:12.642 ServerApp] Client connected. ID: 0b2e4da535e043fc8ea9effef327119f
+[I 2025-10-07 17:24:12.641 ServerApp] Client disconnected. ID: 0b2e4da535e043fc8ea9effef327119f
+[I 2025-10-07 17:24:14.638 ServerApp] Client connected. ID: fbf7724f35ca422383b523ec42fae075
+[I 2025-10-07 17:29:14.637 ServerApp] Client disconnected. ID: fbf7724f35ca422383b523ec42fae075
+[I 2025-10-07 17:29:16.630 ServerApp] Client connected. ID: 6c0d62d5223043f984c50662c1cae0c0
+[I 2025-10-07 17:34:16.630 ServerApp] Client disconnected. ID: 6c0d62d5223043f984c50662c1cae0c0
+[I 2025-10-07 17:34:18.627 ServerApp] Client connected. ID: c8db106a6640444eabdf45393bf3e3ca
+[I 2025-10-07 17:39:18.625 ServerApp] Client disconnected. ID: c8db106a6640444eabdf45393bf3e3ca
+[I 2025-10-07 17:39:19.886 ServerApp] Client connected. ID: 5be12e55e240419ab68a69ff0d6efcb0
+[I 2025-10-07 17:44:19.885 ServerApp] Client disconnected. ID: 5be12e55e240419ab68a69ff0d6efcb0
+[I 2025-10-07 17:44:21.224 ServerApp] Client connected. ID: aed69f12fbf84c988fcb5c8ade091747

@@ -1,0 +1,73 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# Virtual Environments
+venv/
+env/
+ENV/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS Files
+.DS_Store
+.Trash-*/
+Thumbs.db
+
+# Model artifacts (large files)
+models/vit_classification_model/
+models/*/checkpoint-*/
+*.pth
+*.bin
+*.h5
+
+# Data files (large datasets)
+*.csv.gz
+*.parquet
+*.feather
+
+# Logs
+*.log
+logs/
+mlruns/
+
+# Temporary files
+*.tmp
+*.bak
+*.cache
+
+# MLflow
+.mlflow/
+mlartifacts/
+
+# Domino specific
+.domino/
+
+# Claude Code session context
+CLAUDE.md
+
+# Session notes and Trash
+SESSION_NOTES.md
+.claude/
+results/stdout-*-theirs.txt
+
+# Monitoring configuration and data
+src/monitoring/model_config.json
+src/monitoring/monitoring_config.json
+src/monitoring/training_data/
+src/monitoring/metadata/
+
+# Setup documentation
+SETUP_GUIDE.md

@@ -1,0 +1,395 @@
+stages:
+  - name: Problem Definition and Risk Assessment
+    evidenceSet:
+      - description: DoD AI ethical principles integration guidance
+        definition:
+          - artifactType: guidance
+            details:
+              text: >-
+                This stage involves defining the operational problem and conducting
+                initial risk assessment aligned with DoD responsible AI principles.
+                All AI systems must integrate ethical considerations from the
+                planning phase through deployment. This includes ensuring responsible,
+                equitable, traceable, reliable, and governable AI development.
+                [Learn More](https://www.diu.mil/responsible-ai-guidelines)
+        id: Local.dod-ai-guidance
+        name: DoD Responsible AI Planning Guidance
+      - description: Defines operational problem and AI system purpose
+        definition:
+          - artifactType: input
+            details:
+              label: >-
+                Provide a detailed description of the operational problem, AI system
+                purpose, and mission requirements. Include justification for AI use
+                over alternative solutions.
+              type: textarea
+        id: Local.operational-problem
+        name: Mission Problem Definition
+      - description: Conduct comprehensive risk and ethical assessment
+        definition:
+          - artifactType: input
+            aliasForClassification: model-risk
+            details:
+              label: >-
+                Document risk assessment findings including operational, ethical,
+                security, and safety considerations. Classify overall risk level.
+              type: radio
+              options:
+                - High
+                - Medium 
+                - Low
+        id: Local.comprehensive-risk-assessment
+        name: Comprehensive Risk Assessment
+      - description: List and validate data sources for compliance
+        definition:
+          - artifactType: input
+            details:
+              label: >-
+                Provide comprehensive list of all data sources with validation
+                of data quality, provenance, and compliance with DoD data
+                governance requirements.
+              type: textarea
+        id: Local.validated-data-sources
+        name: Validated Data Sources
+      - description: Define mission success metrics and performance requirements
+        definition:
+          - artifactType: input
+            details:
+              label: >-
+                Specify mission success metrics, performance requirements, and
+                operational thresholds that align with DoD AI ethics principles
+                including accuracy, reliability, and fairness measures.
+              type: textarea
+        id: Local.mission-metrics
+        name: Mission Success Metrics
+    approvals:
+      - name: Problem Definition and Risk Approval
+        allowAdditionalApprovers: true
+        approvers:
+          - name: modeling-leadership
+            showByDefault: true
+            editable: false
+        evidence:
+          description: Review and approve problem definition and risk assessment
+          definition:
+            - artifactType: input
+              details:
+                label: >-
+                  Have you reviewed the operational problem definition and
+                  validated alignment with DoD responsible AI principles?
+                type: radio
+                options:
+                  - 'Yes'
+                  - 'No'
+            - artifactType: input
+              details:
+                label: >-
+                  Do you authorize the project to proceed to the design
+                  and development phase?
+                type: radio
+                options:
+                  - 'Yes'
+                  - 'No'
+          id: Local.problem-definition-signoff
+          name: Problem Definition Approval
+
+  - name: AI System Design and Development
+    evidenceSet:
+      - description: Document AI architecture and algorithmic approach
+        definition:
+          - artifactType: input
+            details:
+              label: >-
+                Describe the chosen AI architecture, algorithms, and design
+                decisions with justification for selections based on mission
+                requirements and ethical considerations.
+              type: textarea
+        id: Local.ai-architecture
+        name: AI System Architecture
+      - description: Document system limitations and ethical constraints
+        definition:
+          - artifactType: input
+            details:
+              label: >-
+                List known limitations, constraints, and potential failure modes
+                of the AI system. Include bias considerations and fairness
+                constraints.
+              type: textarea
+        id: Local.system-limitations
+        name: System Limitations and Constraints
+      - description: Implement AI system with responsible design practices
+        definition:
+          - artifactType: input
+            details:
+              label: >-
+                Provide implementation details demonstrating incorporation of
+                responsible AI practices including explainability, auditability,
+                and human oversight mechanisms.
+              type: textarea
+        id: Local.responsible-implementation
+        name: Responsible AI Implementation
+      - description: Document development results and performance analysis
+        definition:
+          - artifactType: input
+            details:
+              label: >-
+                Provide comprehensive development results including performance
+                metrics, bias testing, and comparison to mission success criteria.
+              type: textarea
+        id: Local.development-results
+        name: Development Results and Analysis
+    approvals:
+      - name: AI System Design Approval
+        allowAdditionalApprovers: true
+        approvers:
+          - name: modeling-practitioners
+            showByDefault: true
+            editable: false
+          - name: modeling-leadership
+            showByDefault: true
+            editable: false
+        evidence:
+          description: Review and approve AI system design and development
+          definition:
+            - artifactType: input
+              details:
+                label: >-
+                  Have you reviewed the AI system design and validated
+                  responsible AI implementation practices?
+                type: radio
+                options:
+                  - 'Yes'
+                  - 'No'
+            - artifactType: input
+              details:
+                label: >-
+                  Do you approve the AI system design for validation testing?
+                type: radio
+                options:
+                  - 'Yes'
+                  - 'No'
+          id: Local.design-approval-signoff
+          name: AI System Design Signoff
+
+  - name: Model Validation and Ethics Review
+    evidenceSet:
+      - description: Validate AI methodology and approach
+        definition:
+          - artifactType: input
+            details:
+              label: Which AI methodology and framework is the model based on?
+              type: textarea
+          - artifactType: input
+            details:
+              label: >-
+                Is the methodology fit for purpose and are all algorithmic
+                choices properly justified with ethical considerations?
+              type: radio
+              options:
+                - 'Yes'
+                - 'No'
+          - artifactType: input
+            details:
+              label: >-
+                Are the input and output data complete, accurate, relevant,
+                consistent, and free from harmful bias?
+              type: radio
+              options:
+                - 'Yes'
+                - 'No'
+          - artifactType: input
+            details:
+              label: >-
+                Has the model owner performed explainability and interpretability
+                analysis in accordance with DoD requirements?
+              type: radio
+              options:
+                - 'Yes'
+                - 'No'
+        id: Local.methodology-validation
+        name: Methodology Validation
+      - description: Assess model quality and performance metrics
+        definition:
+          - artifactType: metadata
+            details:
+              type: modelmetric
+              metrics:
+                - name: accuracy
+                  label: Accuracy
+                  aliases:
+                    - acc
+                    - accuracy_score
+                  threshold:
+                    operator: '>='
+                    value: 0.90
+                - name: f1_score
+                  label: F1-Score
+                  aliases:
+                    - f1
+                    - f1-score
+                    - f1_macro
+                  threshold:
+                    operator: '>='
+                    value: 0.85
+          - artifactType: policyScriptedCheck
+            details:
+              name: Ethics and Fairness Evaluation
+              label: Ethics and Fairness Evaluation
+              command: python /mnt/code/src/pii-detection.py
+              parameters: []
+              outputTypes:
+                - txt
+                - json
+              environmentId: 68baf3a089dbf01b47c4562f
+              hardwareTierId: small-k8s
+              volumeSizeGiB: 10
+          - artifactType: metadata
+            details:
+              label: Upload comprehensive model validation and ethics report
+              type: file
+        id: Local.model-quality-ethics
+        name: Model Quality and Ethics Assessment
+      - description: Operational readiness and deployment assessment
+        definition:
+          - artifactType: input
+            details:
+              label: >-
+                Document operational readiness including human oversight
+                procedures, monitoring systems, and incident response plans.
+              type: textarea
+        id: Local.operational-readiness
+        name: Operational Readiness Assessment
+    approvals:
+      - name: Model Validation and Ethics Approval
+        allowAdditionalApprovers: true
+        approvers:
+          - name: modeling-review
+            showByDefault: true
+            editable: false
+          - name: modeling-practitioners
+            showByDefault: true
+            editable: false
+        evidence:
+          description: Validation and ethics review checklist
+          definition:
+            - artifactType: input
+              details:
+                label: Have you reviewed the model validation reports and methodology?
+                type: radio
+                options:
+                  - label: 'Yes'
+                    value: 'Yes'
+                  - label: 'No'
+                    value: 'No'
+            - artifactType: input
+              details:
+                label: Have you verified the ethics and fairness evaluation results?
+                type: radio
+                options:
+                  - label: 'Yes'
+                    value: 'Yes'
+                  - label: 'No'
+                    value: 'No'
+            - artifactType: input
+              details:
+                label: >-
+                  Have you confirmed explainability and interpretability
+                  meet DoD requirements?
+                type: radio
+                options:
+                  - label: 'Yes'
+                    value: 'Yes'
+                  - label: 'No'
+                    value: 'No'
+            - artifactType: input
+              details:
+                label: >-
+                  Do you certify this model meets DoD responsible AI
+                  standards for deployment?
+                type: radio
+                options:
+                  - label: 'Yes'
+                    value: 'Yes'
+                  - label: 'No'
+                    value: 'No'
+          id: Local.validation-ethics-signoff
+          name: Model Validation and Ethics Signoff
+
+  - name: Deployment Authorization and Monitoring Setup
+    evidenceSet:
+      - description: Define secure deployment strategy with monitoring
+        definition:
+          - artifactType: input
+            details:
+              label: >-
+                Outline deployment strategy including secure infrastructure,
+                continuous monitoring plans, performance tracking, and
+                human oversight integration.
+              type: textarea
+        id: Local.secure-deployment-strategy
+        name: Secure Deployment Strategy
+      - description: Document system scalability and operational resilience
+        definition:
+          - artifactType: input
+            details:
+              label: >-
+                Describe system scalability plans, operational resilience
+                measures, and performance maintenance under varying conditions.
+              type: textarea
+        id: Local.scalability-resilience
+        name: Scalability and Resilience Plan
+      - description: Outline comprehensive security and compliance measures
+        definition:
+          - artifactType: input
+            details:
+              label: >-
+                Detail security measures, data protection protocols,
+                compliance with DoD cybersecurity requirements, and
+                audit trail mechanisms.
+              type: textarea
+        id: Local.security-compliance
+        name: Security and Compliance Measures
+      - description: Establish continuous monitoring and governance framework
+        definition:
+          - artifactType: input
+            details:
+              label: >-
+                Define continuous monitoring framework including performance
+                tracking, drift detection, bias monitoring, and regular
+                ethics review procedures.
+              type: textarea
+        id: Local.continuous-monitoring
+        name: Continuous Monitoring Framework
+    approvals:
+      - name: Deployment Authorization
+        allowAdditionalApprovers: true
+        approvers:
+          - name: modeling-leadership
+            showByDefault: true
+            editable: false
+          - name: modeling-review
+            showByDefault: true
+            editable: false
+        evidence:
+          description: Review and authorize deployment with monitoring
+          definition:
+            - artifactType: input
+              details:
+                label: >-
+                  Have you reviewed and approved the secure deployment
+                  strategy and monitoring framework?
+                type: radio
+                options:
+                  - 'Yes'
+                  - 'No'
+            - artifactType: input
+              details:
+                label: >-
+                  Do you authorize deployment of this AI system with
+                  required monitoring and governance controls?
+                type: radio
+                options:
+                  - 'Yes'
+                  - 'No'
+          id: Local.deployment-authorization-signoff
+          name: Deployment Authorization Signoff

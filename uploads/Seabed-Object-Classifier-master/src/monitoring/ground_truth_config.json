@@ -1,0 +1,38 @@
+{
+  "variables": [
+    {
+      "name": "event_id",
+      "variableType": "row_identifier",
+      "valueType": "string"
+    },
+    {
+      "name": "actual_class",
+      "variableType": "ground_truth",
+      "valueType": "categorical",
+      "forPredictionOutput": "predicted_class"
+    }
+  ],
+  "datasetDetails": {
+    "name": "seabed_ground_truth_68eda1eb2500c81ff5fed203_final",
+    "datasetType": "file",
+    "datasetConfig": {
+      "path": "ground_truth/68eda1eb2500c81ff5fed203/2025-10-15.csv",
+      "fileFormat": "csv"
+    },
+    "datasourceName": "ground-truth-seabed-classifier",
+    "datasourceType": "s3"
+  },
+  "modelMetadata": {
+    "name": "Seabed Object Detection Model",
+    "modelType": "classification",
+    "version": "1.0",
+    "description": "Ground truth labels with matching model ID and confirmed S3 upload",
+    "author": "seabed-classifier-team",
+    "modelId": "68eda1eb2500c81ff5fed203",
+    "dataFormat": "CSV with event_id, actual_class, timestamp",
+    "uploadDate": "2025-10-15",
+    "s3Key": "ground_truth/68eda1eb2500c81ff5fed203/2025-10-15.csv",
+    "fileSize": "2367 bytes",
+    "recordCount": 30
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "_comment": "Unified Monitoring Configuration Template",
+  "_description": "Copy this to model_config.json and fill in your values",
+  "_instructions": "Run: python src/monitoring/setup_monitoring.py",
+  "domino": {
+    "base_url": "https://your-domino-instance.com",
+    "user_api_key_env": "DOMINO_USER_API_KEY"
+  },
+  "model_api": {
+    "endpoint_url": "https://your-domino-instance.com:443/models/YOUR_MODEL_ID/labels/prod/model",
+    "token": "REPLACE_WITH_YOUR_MODEL_API_TOKEN",
+    "timeout": 60
+  },
+  "model_monitor": {
+    "model_id": "YOUR_MODEL_MONITOR_ID",
+    "prediction_model_id": "YOUR_MODEL_MONITOR_ID"
+  },
+  "data_sources": {
+    "ground_truth": "your-ground-truth-datasource-name"
+  },
+  "monitoring": {
+    "daily_predictions": 30,
+    "min_interval_seconds": 1,
+    "max_interval_seconds": 5,
+    "default_hours_back": 24
+  },
+  "paths": {
+    "ground_truth_prefix": "ground_truth",
+    "config_backup_dir": "/mnt/artifacts/monitoring",
+    "training_data_dir": "training_data"
+  },
+  "model_classes": {
+    "labels": [
+      "plane",
+      "ship",
+      "seafloor"
+    ],
+    "label_map": {
+      "plane": 0,
+      "ship": 1,
+      "seafloor": 2
+    }
+  }
+}
