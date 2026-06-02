@@ -20,9 +20,6 @@ from domino_auth import configure_auth, user_auth
 
 configure_auth(user_auth)
 
-# Inline SVG logo — white paths, designed for dark backgrounds
-_LOGO_SVG = (pathlib.Path(__file__).parent.parent / "domino-logo.svg").read_text()
-
 from default_consts import DEFAULT_OPENAI_MODEL
 
 from studio.state import (
@@ -506,10 +503,6 @@ async def index(req: Request):
                 })();
             """),
             Div(
-                Div(NotStr(_LOGO_SVG), cls="domino-header-inner"),
-                cls="domino-header",
-            ),
-            Div(
                 Div(
                     Div(
                         Span("Resolving project…", cls="bootstrap-status-text"),
@@ -935,15 +928,6 @@ async def index(req: Request):
         Title("ModelDocs — Domino"),
         Style(fontawesome_faces_css()),
         Script(STUDIO_FONT_BASE_PATCH_JS),
-        # Header
-        Div(
-            Div(
-                NotStr(_LOGO_SVG),
-                Span("ModelDocs", cls="app-header-title"),
-                cls="domino-header-inner",
-            ),
-            cls="domino-header",
-        ),
         # Page
         Div(
             *_render_warnings_banner(_STARTUP_WARNINGS),
